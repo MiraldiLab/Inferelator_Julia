@@ -1,3 +1,5 @@
+using TickTock
+
 cd("../julia_fxns")
 
 include(pwd() * "/importGeneExpGeneLists.jl")
@@ -17,6 +19,5 @@ priorFile = pwd() * "/RNAseq_inputs/priors/ATAC_allTh.tsv"
 minTargets = 0
 edgeSS = 0
 outputFile = "../outputs/integratePrior.jld"
-
 
 integratePrior_estTFA(geneExprMat, priorFile, minTargets, edgeSS,outputFile)

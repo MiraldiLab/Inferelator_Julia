@@ -67,6 +67,9 @@ fid = open(priorFile)
 # get first line and see what regulators we have
 tline = readline(fid, keep=false)
 pRegsTmp = split(tline, '\t')
+if pRegsTmp[1] == ""
+    pRegsTmp = pRegsTmp[2:length(pRegsTmp)]
+end
 close(fid)
 
 # get the rest of the data using readdlm
@@ -190,7 +193,6 @@ totTargs = size(priorMatrix)[1]
 totPreds = size(priorMatrix)[2]
 
 
-
 if edgeSS > 0
     tfas = zeros(edgeSS,totPreds,totConds)
     for ss = 1:edgeSS
@@ -209,14 +211,16 @@ if edgeSS > 0
         end        
         tfas[ss,:,:] = sPrior \ targExp   
     end
-    #medTfas = zeros(Int8,totPreds,totConds)
+    medTfas = zeros(totPreds,totConds)
 
-    medTfas = median(tfas, dims = 1)
+    medTfas[:,:] = median(tfas, dims = 1)
     println("Median from  ", string(edgeSS), " subsamples used for prior-based TFA.")
 else
     medTfas = priorMatrix \ targExp;
     println("No subsampling for prior-based TFA estimate.")
 end
+
+println(size(pRegs))
 
 println("Save data")
 
