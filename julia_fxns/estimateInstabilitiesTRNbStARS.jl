@@ -1,6 +1,6 @@
 using JLD2
 using DelimitedFiles
-include("/Users/kat6ti/Documents/Inferelator_Julia/julia_fxns/getMLassoStARSlambdaRangePerGen.jl")
+include("/Users/kat6ti/Documents/Inferelator_Julia/julia_fxns/getMLassoStARSlambdaRangePerGene.jl")
 include("/Users/kat6ti/Documents/Inferelator_Julia/julia_fxns/getMLassoStARSinstabilitiesPerGeneAndNet.jl")
 
 function estimateInstabilitiesTRNbStARS(geneExprMat,tfaMat,lambdaBias,tfaOpt,
@@ -179,7 +179,7 @@ subsampleSize = floor(subsampleFrac*length(trainInds))
 subsampleSize = convert(Int64, subsampleSize)
 
 ## bStARS to narrow lambda range around target instability
-println("Estimating lambda bounds for target instability with getMLassoStARSlambdaRangePerGene.m")
+println("Estimating lambda bounds for target instability with getMLassoStARSlambdaRangePerGene.jl")
 bStarsTotSS = 5;  # note bStARS authors recommend 2 subsamples, we reduce search space 
 # further by using 5 subsamples at relatively small cost early on
 bStarsLogLambdaStep = 10;
@@ -195,7 +195,8 @@ minLambdas, maxLambdas, maxedOut, notSmallEnough, minLambdaNet, maxLambdaNet, ma
 # note extension is limited to "extensionLimit" defined above
 needNewRange = maxOutNet + minOutNet
 extended = 0
-while needNewRange < extensionLimit && extended < extensionLimit
+while 1>2
+#while needNewRange < extensionLimit && extended < extensionLimit
     if maxOutNet > 0
         currLambdaMax = lambdaMax*10
         lambdaMax = currLambdaMax
@@ -233,24 +234,3 @@ geneInstabilities,netInstabilities,ssMatrix = getMLassoStARSinstabilitiesPerGene
 @save instabOutMat geneInstabilities netInstabilities ssMatrix predictorMat responseMat priorMat lambdaBias lambdaRange trainInds subsampleSize totSS targGenes priorWeightsMat allPredictors conditionsc    
 
 end
-
-geneExprMat = "/Users/kat6ti/Documents/Inferelator_Julia/outputs/geneExprMat.jld"
-tfaMat = "/Users/kat6ti/Documents/Inferelator_Julia/outputs/tfaMat.jld"
-lambdaBias = 0.5
-tfaOpt="mRNA"
-totSS = 50
-targetInstability = 0.05
-lambdaMin = 0.01
-lambdaMax = 1
-totLogLambdaSteps = 25
-subsampleFrac = 10*(1/sqrt(254))
-instabOutMat = "../outputs/instabOutMat.jld"
-#leaveOutSampleList = "/Users/kat6ti/Documents/Inferelator_Julia/inputs/RNAseq_inputs/leaveOutLists/EarlyTh17LOset.txt"
-leaveOutSampleList = ""
-bStarsTotSS = 5
-extensionLimit = 1
-
-
-estimateInstabilitiesTRNbStARS(geneExprMat,tfaMat,lambdaBias,tfaOpt,
-    totSS,targetInstability,lambdaMin,lambdaMax,totLogLambdaSteps,subsampleFrac,
-    instabOutMat,leaveOutSampleList,bStarsTotSS,extensionLimit)

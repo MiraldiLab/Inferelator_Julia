@@ -35,7 +35,7 @@ close(fid)
 
 println("1. importGeneExpGeneLists.jl")
 geneExprMat = "../outputs/geneExprMat.jld"
-importGeneExpGeneLists(normGeneExprFile,targGeneFile,potRegFile,geneExprMat,tfaGeneFile)
+#importGeneExpGeneLists(normGeneExprFile,targGeneFile,potRegFile,geneExprMat,tfaGeneFile)
 
 ## 2. Given a prior of TF-gene interactions, estimate transcription factor activities (TFAs) using prior-based TFA and TF mRNA levels
 priorName = "ATAC_Th17"
@@ -45,7 +45,7 @@ minTargets = 3
 
 println("2. integratePrior_estTFA.jl")
 tfaMat="../outputs/tfaMat.jld"
-integratePrior_estTFA(geneExprMat,priorFile,minTargets,edgeSS, tfaMat)
+#integratePrior_estTFA(geneExprMat,priorFile,minTargets,edgeSS, tfaMat)
 
 println("3. estimateInstabilitiesTRNbStARS.jl")
 
@@ -62,10 +62,53 @@ subsampleFrac = 10*(1/sqrt(totSamps))
 leaveOutSampleList = ""
 leaveOutInf = ""
 instabilitiesDir = "../outputs/" * string(targetInstability) * "_SS" * string(totSS) * "_bS" * string(bStarsTotSS)
-#mkdir(instabilitiesDir)
+
+try
+    mkdir(instabilitiesDir)
+catch
+    ##
+end
+
+netSummary = priorName * "_bias" * string(100*lambdaBias) * tfaOpt
 instabOutMat = "/Users/kat6ti/Documents/Inferelator_Julia/outputs/instabOutMat.jl"
 
 estimateInstabilitiesTRNbStARS(geneExprMat,tfaMat,lambdaBias,tfaOpt,
     totSS,targetInstability,lambdaMin,lambdaMax,totLogLambdaSteps,
     subsampleFrac,instabOutMat,leaveOutSampleList,bStarsTotSS,extensionLimit)
 
+## 4. For a given instability cutoff and model size, rank TF-gene
+# interactions, calculate stabilities and network file for jp_gene_viz
+# visualizations
+priorMergedTfsFile = "./scRNAseq_inputs/priors/" * priorName * "_mergedTfs.txt"
+try # not all priors have merged TFs and merged TF files
+    isfile(priorMergedTfsFile) 
+catch
+    global priorMergedTfsFile = ""
+end
+
+meanEdgesPerGene = 10
+targetInstability = .05
+networkDir = replace(instabilitiesDir,"instabilities" => "networks")
+instabSource = "Network"
+try    
+    mkdir(networkDir)
+catch
+    ##
+end
+
+networkSubDir = networkDir * "/" * instabSource * string(targetInstability) * "_" * string(meanEdgesPerGene) * "tfsPerGene"
+try 
+    mkdir(networkSubDir)
+catch
+    ##
+end
+
+trnOutMat = networkSubDir * "/" * netSummary
+outNetFileSparse = networkSubDir * netSummary * "_sp.tsv"
+networkHistDir = networkSubDir * "Histograms"
+try
+    mkdir(networkHistDir)
+catch
+    ##
+end
+subsampHistPdf = networkHistDir * netSummary * "_ssHist"

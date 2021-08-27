@@ -175,9 +175,10 @@ for res = 1:totResponses # can be a parfor loop
     instabilitiesLb[res,:] = 2 * (1/currPredNum) .* sum(theta2 .* (1 .- theta2), dims=2) # bStARS lower bound
     netInstabilitiesLb = netInstabilitiesLb + currPredNum*(instabilitiesLb[res,:]) # weighted sum
     theta2mean = sum(theta2,dims=2)./currPredNum
-    instabilitiesUb[res,:] = 2 * theta2mean.*(1 .- theta2mean) # bStARS upper bound
+    instabilitiesUb[res,:] = 2 * theta2mean .* (1 .- theta2mean) # bStARS upper bound
     netInstabilitiesUb = netInstabilitiesUb + currPredNum*instabilitiesUb[res,:] # weighted sum
 end
+
 
 
 for res = 1:totResponses
@@ -195,16 +196,17 @@ for res = 1:totResponses
     # upper bound
     xx = findmin(abs.(instabilitiesLb[res,:] .- targetMaxInstability))
     xx = findall(x -> x == xx[1],abs.(instabilitiesLb[res,:] .- targetMaxInstability))
-    maxLambdas[res] = lambdaRange[xx[end]] # to the right
+    minLambdas[res] = reverse(lambdaRange)[xx[end]] # to the right
     # find the lambda nearest the min instability worth considering, use
     # upper bound as that will be sure to find an lambda >= target instability lambda 
     xx = findmin(abs.(instabilitiesUb[res,:] .- targetMinInstability))
     xx = findall(x -> x == xx[1], abs.(instabilitiesUb[res,:] .- targetMinInstability))
-    minLambdas[res] = lambdaRange[xx[end]]  # to the right
+    maxLambdas[res] = reverse(lambdaRange)[xx[end]]  # to the right
     # note for typical bStARS, where you know what instability cutoff you
     # want you'd use the upperbound to find the min lambda and the lb to
     # find the max lambda    
 end
+
 
 # get network-level instabilities
 netInstabilitiesUb = netInstabilitiesUb ./ totEdges
@@ -221,6 +223,9 @@ maxLambdaNet = lambdaRange[maxInstInd[end]]
 xx = findmin(abs.(netInstabilitiesUb .- targetMinInstability))
 minInstInd = findall(x -> x == xx[1], abs.(netInstabilitiesUb .- targetMinInstability))
 minLambdaNet = lambdaRange[minInstInd[end]]
+
+minLambdaNet
+maxLambdaNet
 
 # find out if maxLambda or minLambda were at the lambda range extremes
 maxedOut = findall(x -> x == lambdaRange[end], maxLambdas)
