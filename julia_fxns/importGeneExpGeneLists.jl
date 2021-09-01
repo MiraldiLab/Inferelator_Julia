@@ -33,7 +33,7 @@ using DelimitedFiles
 using Statistics
 using JLD2
 
-function importGeneExpGeneLists(normGeneExprFile, targGeneFile, potRegFile, outputFile, tfaGeneFile=nothing)
+function importGeneExpGeneLists(normGeneExprFile, targGeneFile, potRegFile, outputFile, tfaGeneFile)
 
 eps = 1E-10; # target genes whose standard deviation across all samples is 
     # less than eps will be removed from the target gene matrix
@@ -80,7 +80,7 @@ if remove != []
 end
 keep = setdiff(1:length(stds),Zstd)
 targGenes = targGenes[keep]
-targGeneMat[keep,:]
+targGeneMat = targGeneMat[keep,:]
 println(length(targGenes) , " target genes total")
 if length(targGenesTmp) > length(targGenes)
   miss = setdiff(targGenesTmp,targGenes);

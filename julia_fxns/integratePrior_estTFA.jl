@@ -220,7 +220,6 @@ else
     println("No subsampling for prior-based TFA estimate.")
 end
 
-println(size(pRegs))
 
 println("Save data")
 

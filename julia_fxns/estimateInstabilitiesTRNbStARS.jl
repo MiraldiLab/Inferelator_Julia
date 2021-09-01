@@ -195,8 +195,7 @@ minLambdas, maxLambdas, maxedOut, notSmallEnough, minLambdaNet, maxLambdaNet, ma
 # note extension is limited to "extensionLimit" defined above
 needNewRange = maxOutNet + minOutNet
 extended = 0
-while 1>2
-#while needNewRange < extensionLimit && extended < extensionLimit
+while needNewRange >= extensionLimit && extended < extensionLimit
     if maxOutNet > 0
         currLambdaMax = lambdaMax*10
         lambdaMax = currLambdaMax

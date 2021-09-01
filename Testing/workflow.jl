@@ -19,6 +19,7 @@
 include("../julia_fxns/importGeneExpGeneLists.jl")
 include("../julia_fxns/integratePrior_estTFA.jl")
 include("../julia_fxns/estimateInstabilitiesTRNbStARS.jl")
+include("../julia_fxns/buildTRNs_mLassoStARS.jl")
 
 ## 1. Import gene expression data, list of regulators, list of target genes
 normGeneExprFile = "../inputs/RNAseq_inputs/geneExpression/th17_RNAseq254_DESeq2_VSDcounts.txt"
@@ -35,7 +36,7 @@ close(fid)
 
 println("1. importGeneExpGeneLists.jl")
 geneExprMat = "../outputs/geneExprMat.jld"
-#importGeneExpGeneLists(normGeneExprFile,targGeneFile,potRegFile,geneExprMat,tfaGeneFile)
+importGeneExpGeneLists(normGeneExprFile,targGeneFile,potRegFile,geneExprMat,tfaGeneFile)
 
 ## 2. Given a prior of TF-gene interactions, estimate transcription factor activities (TFAs) using prior-based TFA and TF mRNA levels
 priorName = "ATAC_Th17"
@@ -45,19 +46,19 @@ minTargets = 3
 
 println("2. integratePrior_estTFA.jl")
 tfaMat="../outputs/tfaMat.jld"
-#integratePrior_estTFA(geneExprMat,priorFile,minTargets,edgeSS, tfaMat)
+integratePrior_estTFA(geneExprMat,priorFile,minTargets,edgeSS, tfaMat)
 
 println("3. estimateInstabilitiesTRNbStARS.jl")
 
 lambdaBias = .5
-tfaOpt = "" # options are "_TFmRNA" or ""
+tfaOpt = "_TFmRNA" # options are "_TFmRNA" or ""
 totSS = 50
 targetInstability = .05
 lambdaMin = .01
 lambdaMax = 1
 extensionLimit = 1
 totLogLambdaSteps = 25 # will have this many steps per log10 within bStARS lambda range
-bStarsTotSS = 5
+bStarsTotSS = 10
 subsampleFrac = 10*(1/sqrt(totSamps))
 leaveOutSampleList = ""
 leaveOutInf = ""
@@ -79,7 +80,7 @@ estimateInstabilitiesTRNbStARS(geneExprMat,tfaMat,lambdaBias,tfaOpt,
 ## 4. For a given instability cutoff and model size, rank TF-gene
 # interactions, calculate stabilities and network file for jp_gene_viz
 # visualizations
-priorMergedTfsFile = "./scRNAseq_inputs/priors/" * priorName * "_mergedTfs.txt"
+priorMergedTfsFile = "../inputs/RNAseq_inputs/priors/" * priorName * "_mergedTfs.txt"
 try # not all priors have merged TFs and merged TF files
     isfile(priorMergedTfsFile) 
 catch
@@ -112,3 +113,8 @@ catch
     ##
 end
 subsampHistPdf = networkHistDir * netSummary * "_ssHist"
+outMat ="../outputs/trnOutMat.jld"
+
+println("4. buildTRNs_mLassoStARS.m")
+buildTRNs_mLassoStARS(instabOutMat,tfaMat,priorMergedTfsFile, meanEdgesPerGene,targetInstability,instabSource,
+    subsampHistPdf,trnOutMat,outNetFileSparse, outMat)

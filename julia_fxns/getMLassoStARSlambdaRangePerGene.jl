@@ -239,8 +239,6 @@ xx = findmin(abs.(netInstabilitiesUb .- targetMinInstability))
 minInstInd = findall(x -> x == xx[1], abs.(netInstabilitiesUb .- targetMinInstability))
 maxLambdaNet = reverse(lambdaRange)[minInstInd[end]]
 
-println(minLambdaNet)
-println(maxLambdaNet)
 
 
 # find out if maxLambda or minLambda were at the lambda range extremes
