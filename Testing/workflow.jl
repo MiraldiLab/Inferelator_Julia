@@ -1,3 +1,4 @@
+using Base: Float16
 ## example_workflow_Th17
 # Use mLASSO-StARS to build a TRN from gene expression and prior
 # information in four steps. Please refer to each function's help
@@ -15,6 +16,10 @@
 ## Author: Emily R. Miraldi, Ph.D., Divisions of Immunobiology and Biomedical
 #   Informatics, Cincinnati Children's Hospital
 ## Date: March 29, 2018
+
+using TickTock
+
+tick()
 
 include("../julia_fxns/importGeneExpGeneLists.jl")
 include("../julia_fxns/integratePrior_estTFA.jl")
@@ -76,7 +81,6 @@ instabOutMat = "/Users/kat6ti/Documents/Inferelator_Julia/outputs/instabOutMat.j
 estimateInstabilitiesTRNbStARS(geneExprMat,tfaMat,lambdaBias,tfaOpt,
     totSS,targetInstability,lambdaMin,lambdaMax,totLogLambdaSteps,
     subsampleFrac,instabOutMat,leaveOutSampleList,bStarsTotSS,extensionLimit)
-
 ## 4. For a given instability cutoff and model size, rank TF-gene
 # interactions, calculate stabilities and network file for jp_gene_viz
 # visualizations
@@ -116,5 +120,9 @@ subsampHistPdf = networkHistDir * netSummary * "_ssHist"
 outMat ="../outputs/trnOutMat.jld"
 
 println("4. buildTRNs_mLassoStARS.m")
+tick()
 buildTRNs_mLassoStARS(instabOutMat,tfaMat,priorMergedTfsFile, meanEdgesPerGene,targetInstability,instabSource,
     subsampHistPdf,trnOutMat,outNetFileSparse, outMat)
+tock()
+
+tock()

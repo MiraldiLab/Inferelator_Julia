@@ -63,21 +63,36 @@ totConds = size(targGeneMat)[2]
 
 println("Case 1")
 ## Case 1: TF mRNA, use the unmerged prior, limit prior to potential 
-fid = open(priorFile)
+#fid = open(priorFile)
 # get first line and see what regulators we have
-tline = readline(fid, keep=false)
-pRegsTmp = split(tline, '\t')
-if pRegsTmp[1] == ""
-    pRegsTmp = pRegsTmp[2:length(pRegsTmp)]
-end
-close(fid)
+#tline = readline(fid, keep=false)
+#pRegsTmp = split(tline, '\t')
+#if pRegsTmp[1] == ""
+#    pRegsTmp = pRegsTmp[2:end]
+#end
+#close(fid)
 
 # get the rest of the data using readdlm
+#fid = open(priorFile)
+#C = readdlm(fid,'\t','\n', skipstart=1)
+#close(fid)
+#pTargsTmp = C[:,1]
+#pIntsTmp = C[:,2:end]
+
 fid = open(priorFile)
-C = readdlm(fid,'\t','\n', skipstart=1)
-close(fid)
+C = readdlm(fid,'\t','\n', skipstart=0)
+pRegsTmp = C[1,:]
+if pRegsTmp[1] == ""
+    pRegsTmp = pRegsTmp[2:end]
+end
+pRegsTmp = convert(Vector{String}, pRegsTmp)
+C = C[2:end,:]
 pTargsTmp = C[:,1]
+pTargsTmp = convert(Vector{String}, pTargsTmp)
 pIntsTmp = C[:,2:end]
+pIntsTmp = convert(Matrix{Float64}, pIntsTmp)
+close(fid)
+
 
 
 ## Limit prior regulators and gene targets to those included in input data
@@ -112,9 +127,12 @@ end
 
 if mergedTFsExist == 1
     mtIn = open(mergedTFs)
-    C = CSV.File(mtIn, delim="\t", header=0)
-    mergedTFs = C.Column1
-    individualTFs = C.Column2
+    C = readdlm(mtIn,'\t','\n', skipstart=0)
+    #C = CSV.File(mtIn, delim="\t", header=0)
+    mergedTFs = C[:,1]
+    individualTFs = C[:,2] 
+    mergedTFs = convert(Vector{String}, mergedTFs)
+    individualTFs = convert(Vector{String}, individualTFs)
     totMergedSets = length(individualTFs);
     keepMergedTFs = []; # keep track of merged TF names to keep
     for mind = 1:totMergedSets

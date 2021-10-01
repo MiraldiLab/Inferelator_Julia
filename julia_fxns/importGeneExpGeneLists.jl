@@ -32,6 +32,8 @@
 using DelimitedFiles
 using Statistics
 using JLD2
+using CSV
+using TickTock
 
 function importGeneExpGeneLists(normGeneExprFile, targGeneFile, potRegFile, outputFile, tfaGeneFile)
 
@@ -40,23 +42,32 @@ eps = 1E-10; # target genes whose standard deviation across all samples is
 
 
 ## input gene expression data
-currFile = normGeneExprFile;
-fid = open(currFile)
-tline = readline(fid, keep=false)
-tline2 = readline(fid)
-totSamps = length(split(tline2, "\t")) - 1
-conditionsc = split(tline,"\t")
-conditionsc = conditionsc[end-totSamps+1:end]
-close(fid)
+#currFile = normGeneExprFile;
+#fid = open(currFile)
+#tline = readline(fid, keep=false)
+#conditionsc = split(tline,"\t")
+#if(conditionsc[1] == "")
+#  conditionsc = conditionsc[2:end]
+#end
+#totSamps = length(conditionsc) 
+#close(fid)
 
-# get input data
+#get input data
 fid = open(currFile);
-C = readdlm(fid,'\t','\n', skipstart=1)
+C = readdlm(fid,'\t','\n', skipstart=0)
 close(fid);
+conditionsc = C[1,:]
+if(conditionsc[1] == "")
+  conditionsc = conditionsc[2:end]
+end
+conditionsc = convert(Vector{String}, conditionsc)
+totSamps = length(conditionsc) 
+C = C[2:end,:]
 genesc = C[:,1]
 genesc = convert(Vector{String}, genesc)
 ncounts = C[:,2:end]
-ncountSize = size(ncounts);
+ncounts = convert(Matrix{Float64}, ncounts)
+ncountSize = size(ncounts)
 println("scanned")
 
 ## load target genes, predictors, nominally expressed genes and get matrices for each
@@ -65,12 +76,11 @@ fid = open(targGeneFile)
 C = readdlm(fid, String, skipstart=0)
 close(fid)
 targGenesTmp = C
-xx = intersect(genesc, targGenesTmp)
+xx = intersect(Set(genesc), Set(targGenesTmp))
 indsMat = findall(in(targGenesTmp), genesc)
 targGenes = genesc[indsMat]
 targGeneMat = ncounts[indsMat,:]
 # make sure that genes actual show variation
-# stds = mad(targGeneMat')';
 stds = std(targGeneMat, dims=2)
 Zstd = findall(stds -> stds < eps, stds)
 remove = targGenes[Zstd]
@@ -95,7 +105,7 @@ close(fid)
 potRegs = C
 
 # get mRNA levels of potential regulators matrix
-xx = intersect(genesc,potRegs);
+xx = intersect(Set(genesc),Set(potRegs));
 indsMat = findall(in(potRegs), genesc)
 potRegs_mRNA = genesc[indsMat]
 potRegMat_mRNA = ncounts[indsMat,:]
@@ -113,6 +123,7 @@ if tfaGeneFile != nothing
     C = readdlm(fid,String,skipstart=0)
     close(fid)
     tfaGenesTmp = C
+    tfaGenesTmp = convert(Matrix{String}, tfaGenesTmp)
 else
     println("No TFA gene file found, all genes will be used to estimate TFA.")
     tfaGenesTmp = genesc;
@@ -122,7 +133,6 @@ xx = intersect(genesc,tfaGenesTmp);
 indsMat = findall(in(tfaGenesTmp), genesc)
 tfaGenes = genesc[indsMat]
 tfaGeneMat = ncounts[indsMat,:];
-
 
 @save outputFile conditionsc genesc potRegMat_mRNA potRegs potRegs_mRNA targGeneMat targGenes tfaGenes tfaGeneMat
 end

@@ -145,7 +145,7 @@ if tfaOpt != ""
     for pr = 1:totPreds
         targInd = findall(x -> x==allPredictors[pr], targGenes)
         if length(targInd) > 0 # set lambda penalty to infinity, avoid predicting a TF's mRNA based on its own mRNA level
-            priorWeightsMat[targInd,pr] = Inf # i.e., target gene is its own predictor
+            priorWeightsMat[targInd,pr] .= Inf # i.e., target gene is its own predictor
         end
     end    
 else # have to set prior inds to zero for TFs in TFA that don't have prior info

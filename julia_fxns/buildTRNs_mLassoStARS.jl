@@ -141,7 +141,7 @@ ylabel("Counts")
 yMax = vals[1][2] * 2 #(totSS/50)*1E5;
 axes = plt.gca()
 axes.set_ylim(0,yMax)
-show()
+
 
 # will want to calculate partial correlations further below
 zTfa = zscore(predictorMat')'
@@ -206,6 +206,9 @@ for targ = 1:totUniTargs
     currTarg = uniTargs[targ]
     targRankInds = last.(Tuple.(findall(x -> x == currTarg, keptTargs)))
     currRegs = regs[targRankInds]
+    if length(currRegs) > 10
+        currRegs = currRegs[1:10]
+    end
     targInd = last.(Tuple.(findall(x -> x == currTarg, targGenes)))
     tfsPerGene[targ] = length(targRankInds)
     tfsPerGene = Int.(tfsPerGene)
@@ -221,9 +224,12 @@ for targ = 1:totUniTargs
         if length(inds) == 0
             push!(prho,corspearman(currTargVals, vec(currPredVals[:,i])))
         else
-            push!(prho,partialcor(currTargVals,vec(currPredVals[:,i]), currPredVals[:,inds]))
+           push!(prho,partialcor(currTargVals,vec(currPredVals[:,i]), currPredVals[:,inds]))
         end
     end
+    #for i in 1:length(regressIndsMat)
+    #    push!(prho, cor(currTargVals, vec(currPredVals[:,i])))
+    #end
     if length(findall(x -> x == NaN, prho)) == 0  # make sure there weren't too many edges, 
         allCoefs[targInd,regressIndsMat] = prho
     else
@@ -300,7 +306,7 @@ else
 end
 
 ## re-rank based on possibly de-merged TFs
-rankings = allStabsTest[:]          
+rankings = allStabsTest[:]       
 coefVec = allCoefs[:]
 quantiles = allQuants[:]
 inPriorVec = inPriorMat[:]
@@ -318,7 +324,7 @@ for x in reverse(1:totSS)
     xx = Float64(x)
     push!(indsMerged,findall(y -> y == xx, rankTmp2))
 end
-indsMerged = reduce(vcat, inds)
+indsMerged = reduce(vcat, indsMerged)
 
 # update info sources
 rankings = rankings[keepRankings[indsMerged]]
