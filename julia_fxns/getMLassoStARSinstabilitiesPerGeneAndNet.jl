@@ -101,12 +101,6 @@ for res = 1:totResponses
         ssVals = ssVals + abs.(sign.(currBetas))' 
     end
     ssMatrix[:,res,predInds] = ssVals
-    if rem(res,500) == 0
-        #make sure nothing wonky is happening with lasso solution paths
-        println(string(res), " models built.")
-        glmnetPlot(lsoln)      
-    #     shg
-    end 
 end
 
 for res = 1:totResponses    

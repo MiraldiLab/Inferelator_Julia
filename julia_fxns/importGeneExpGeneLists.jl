@@ -42,7 +42,7 @@ eps = 1E-10; # target genes whose standard deviation across all samples is
 
 
 ## input gene expression data
-#currFile = normGeneExprFile;
+currFile = normGeneExprFile;
 #fid = open(currFile)
 #tline = readline(fid, keep=false)
 #conditionsc = split(tline,"\t")

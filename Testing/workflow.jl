@@ -41,7 +41,9 @@ close(fid)
 
 println("1. importGeneExpGeneLists.jl")
 geneExprMat = "../outputs/geneExprMat.jld"
+tick()
 importGeneExpGeneLists(normGeneExprFile,targGeneFile,potRegFile,geneExprMat,tfaGeneFile)
+tock()
 
 ## 2. Given a prior of TF-gene interactions, estimate transcription factor activities (TFAs) using prior-based TFA and TF mRNA levels
 priorName = "ATAC_Th17"
@@ -51,7 +53,9 @@ minTargets = 3
 
 println("2. integratePrior_estTFA.jl")
 tfaMat="../outputs/tfaMat.jld"
+tick()
 integratePrior_estTFA(geneExprMat,priorFile,minTargets,edgeSS, tfaMat)
+tock()
 
 println("3. estimateInstabilitiesTRNbStARS.jl")
 
@@ -78,9 +82,11 @@ end
 netSummary = priorName * "_bias" * string(100*lambdaBias) * tfaOpt
 instabOutMat = "/Users/kat6ti/Documents/Inferelator_Julia/outputs/instabOutMat.jl"
 
+tick()
 estimateInstabilitiesTRNbStARS(geneExprMat,tfaMat,lambdaBias,tfaOpt,
     totSS,targetInstability,lambdaMin,lambdaMax,totLogLambdaSteps,
     subsampleFrac,instabOutMat,leaveOutSampleList,bStarsTotSS,extensionLimit)
+tock()
 ## 4. For a given instability cutoff and model size, rank TF-gene
 # interactions, calculate stabilities and network file for jp_gene_viz
 # visualizations
