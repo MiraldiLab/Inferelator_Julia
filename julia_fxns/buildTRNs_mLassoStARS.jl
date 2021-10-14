@@ -319,12 +319,9 @@ regs = reshape(regs1,totInts,1)
 ## only keep nonzero rankings
 keepRankings = findall(x -> x > 0,rankings)    
 vals = sort(rankings[keepRankings],rev=true)
-indsMerged = Vector{Vector{Int}}(undef, 0)
-for x in reverse(1:totSS)
-    xx = Float64(x)
-    push!(indsMerged,findall(y -> y == xx, rankTmp2))
-end
-indsMerged = reduce(vcat, indsMerged)
+#indsMerged = Vector{Vector{Int}}(undef, 0)
+indsMerged = sortperm(rankings[keepRankings])
+indsMerged = reverse(indsMerged)
 
 # update info sources
 rankings = rankings[keepRankings[indsMerged]]
