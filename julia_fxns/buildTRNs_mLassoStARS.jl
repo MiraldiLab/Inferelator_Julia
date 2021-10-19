@@ -125,6 +125,7 @@ else
      error("instabSource not recognized, should be either Gene or Network.")
 end
 
+
 # ssMatrix has infinity entries to mark illegal TF-gene interactions
 # (e.g., TF mRNA TFA cannot be used to predict TF gene expression)
 ssOfIntVec = ssOfInt[:]
@@ -158,15 +159,16 @@ regs0 = reshape(regs1,totInts,1)
 rankTmp = ssOfInt[:]
 keepInds = findall(x -> x != 0 && x != Inf, rankTmp) # keep nonzero, remove infinite values (e.g., corresponding to TF-TF edges when TF mRNA used for TFA)
 rankTmp2 = rankTmp[keepInds]
+inds = reverse(sortperm(rankTmp2))
 rankings = sort(rankTmp2,rev=true)
-inds = Vector{Vector{Int}}(undef, 0)
-for x in reverse(1:totSS)
-    xx = Float64(x)
-    push!(inds,findall(y -> y == xx, rankTmp2))
-end
-inds = reduce(vcat, inds)
-regs = regs0[inds]
-targs = targs0[inds]
+#inds = Vector{Vector{Int}}(undef, 0)
+#for x in reverse(1:totSS)
+#    xx = Float64(x)
+#    push!(inds,findall(y -> y == xx, rankTmp2))
+#end
+#inds = reduce(vcat, inds)
+regs = regs0[keepInds[inds]]
+targs = targs0[keepInds[inds]]
 totInfInts = length(rankings)
 
 
@@ -206,9 +208,9 @@ for targ = 1:totUniTargs
     currTarg = uniTargs[targ]
     targRankInds = last.(Tuple.(findall(x -> x == currTarg, keptTargs)))
     currRegs = regs[targRankInds]
-    if length(currRegs) > 10
-        currRegs = currRegs[1:10]
-    end
+    #if length(currRegs) > 10
+    #    currRegs = currRegs[1:10]
+    #end
     targInd = last.(Tuple.(findall(x -> x == currTarg, targGenes)))
     tfsPerGene[targ] = length(targRankInds)
     tfsPerGene = Int.(tfsPerGene)
@@ -227,9 +229,6 @@ for targ = 1:totUniTargs
            push!(prho,partialcor(currTargVals,vec(currPredVals[:,i]), currPredVals[:,inds]))
         end
     end
-    #for i in 1:length(regressIndsMat)
-    #    push!(prho, cor(currTargVals, vec(currPredVals[:,i])))
-    #end
     if length(findall(x -> x == NaN, prho)) == 0  # make sure there weren't too many edges, 
         allCoefs[targInd,regressIndsMat] = prho
     else
@@ -317,9 +316,7 @@ regs1 = repeat(permutedims(allPredictors),totNetGenes,1)
 regs = reshape(regs1,totInts,1)
 
 ## only keep nonzero rankings
-keepRankings = findall(x -> x > 0,rankings)    
-vals = sort(rankings[keepRankings],rev=true)
-#indsMerged = Vector{Vector{Int}}(undef, 0)
+keepRankings = findall(x -> x != 0 && x != Inf, rankings)
 indsMerged = sortperm(rankings[keepRankings])
 indsMerged = reverse(indsMerged)
 
@@ -356,6 +353,7 @@ for qind = 1:totQuants
     end
     lastQuant = currQuant
 end
+
 
 
 @save outMat predictorMat responseMat mergeTfLocVec allStabsTest allCoefs allQuants inPriorMat targGenes allPredictors allStabsMergedTFs regs targs rankings coefVec quantiles quantilesRefined inPriorVec instabSource

@@ -168,7 +168,7 @@ for res = 1:totResponses # can be a parfor loop
         # lsoln.beta == predictors X lambda range, coefficient matrix
         currBetas = reverse(lsoln.betas) # flip so that the lambdas are increasing
             # abs(sign()) as we only want to track nonzero edge occurrences
-        ssVals = ssVals + abs.(sign.(currBetas))'; 
+        ssVals = ssVals + abs.(sign.(currBetas))'
     end
     # calculate instabilities for the gene
     theta2 = (1/totSS)*ssVals # empirical edge probability

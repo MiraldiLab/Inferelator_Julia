@@ -96,12 +96,14 @@ for res = 1:totResponses
         # use glmnet to solve the LASSO problem
         lsoln = glmnet(currPreds, currResponses, penalty_factor = penaltyfactor, lambda = lambdaRange, alpha = 1.0)        
         # lsoln.beta == predictors X lambda range, coefficient matrix
-        currBetas = reverse(lsoln.betas) # flip so that the lambdas are increasing
+        #currBetas = reverse(lsoln.betas) # flip so that the lambdas are increasing
+        currBetas = lsoln.betas
         # abs(sign()) as we only want to track nonzero edge occurrences
         ssVals = ssVals + abs.(sign.(currBetas))' 
     end
     ssMatrix[:,res,predInds] = ssVals
 end
+
 
 for res = 1:totResponses    
     currWeights = priorWeightsMat[res,:]
@@ -130,7 +132,7 @@ for lind = totLambdas:-1:1 # start at highest lambda (lowest instability and wor
     instabVec = instabilitiesPerEdge[:]
     validEdges = findall(isfinite.(currSS[:])) # limit to finite edges
     instabMax = findmax(instabRange)[1]
-    netInstabilities[lind] = max(mean(instabVec[validEdges]),instabMax)
+    netInstabilities[lind] = max(mean(instabVec[validEdges]),max(instabMax))
 end
 println("Network Instabilities Estimated")
 

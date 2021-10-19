@@ -122,7 +122,6 @@ totPRegs = length(pRegs)
 priorMat = zeros(totTargGenes,totPreds)
 priorMat[targGeneInds,1:totPRegs] = priorMatrix[priorGeneInds,:]
 
-
 ## set input priors and predictors    
 predictorMat = [medTfas; potRegMat_mRNA[uniNoPriorRegInds,:]]
 if tfaOpt != "" # use the mRNA levels of TFs
