@@ -1,7 +1,7 @@
 using JLD2
 using DelimitedFiles
-include("/Users/kat6ti/Documents/Inferelator_Julia/julia_fxns/getMLassoStARSlambdaRangePerGene.jl")
-include("/Users/kat6ti/Documents/Inferelator_Julia/julia_fxns/getMLassoStARSinstabilitiesPerGeneAndNet.jl")
+include("../julia_fxns/getMLassoStARSlambdaRangePerGene.jl")
+include("../julia_fxns/getMLassoStARSinstabilitiesPerGeneAndNet.jl")
 
 function estimateInstabilitiesTRNbStARS(geneExprMat,tfaMat,lambdaBias,tfaOpt,
     totSS,targetInstability,lambdaMin,lambdaMax,totLogLambdaSteps,subsampleFrac,
