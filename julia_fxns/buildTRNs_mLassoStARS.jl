@@ -1,5 +1,7 @@
 using PyPlot 
 using Statistics
+using CSV
+using DelimitedFiles
 
 function buildTRNs_mLassoStARS(instabOutMat,tfaMat,priorMergedTfsFile,
     meanEdgesPerGene,targInstability,instabSource,subsampHistPdf,trnOutMat,
@@ -74,6 +76,7 @@ priorMat = load(instabOutMat, "priorMat")
 targGenes = load(instabOutMat, "targGenes")
 allPredictors = load(instabOutMat, "allPredictors")
 totSS = load(instabOutMat, "totSS")
+pRegsNoTfa = load(geneExprMat,"pRegsNoTfa")
 
 totLambdas, totNetGenes, totNetTfs = size(ssMatrix)
 ssOfInt = zeros(totNetGenes,totNetTfs)
@@ -125,12 +128,12 @@ else
      error("instabSource not recognized, should be either Gene or Network.")
 end
 
-
 # ssMatrix has infinity entries to mark illegal TF-gene interactions
 # (e.g., TF mRNA TFA cannot be used to predict TF gene expression)
 ssOfIntVec = ssOfInt[:]
 ssOfIntVec[isinf.(ssOfIntVec)] .= 0
 ssOfInt = reshape(ssOfIntVec,totNetGenes,totNetTfs)
+
 
 
 
@@ -208,9 +211,9 @@ for targ = 1:totUniTargs
     currTarg = uniTargs[targ]
     targRankInds = last.(Tuple.(findall(x -> x == currTarg, keptTargs)))
     currRegs = regs[targRankInds]
-    #if length(currRegs) > 10
-    #    currRegs = currRegs[1:10]
-    #end
+    if length(currRegs) > 13
+        currRegs = currRegs[1:13]
+    end
     targInd = last.(Tuple.(findall(x -> x == currTarg, targGenes)))
     tfsPerGene[targ] = length(targRankInds)
     tfsPerGene = Int.(tfsPerGene)
@@ -223,11 +226,12 @@ for targ = 1:totUniTargs
     prho = []
     for i in 1:length(regressIndsMat)
         inds = setdiff(1:length(regressIndsMat), i)
-        if length(inds) == 0
-            push!(prho,corspearman(currTargVals, vec(currPredVals[:,i])))
-        else
-           push!(prho,partialcor(currTargVals,vec(currPredVals[:,i]), currPredVals[:,inds]))
-        end
+        #if length(inds) == 0
+        #    push!(prho,corspearman(currTargVals, vec(currPredVals[:,i])))
+        #else
+        #   push!(prho,partialcor(currTargVals,vec(currPredVals[:,i]), currPredVals[:,inds]))
+        #end
+        push!(prho,corspearman(currTargVals, vec(currPredVals[:,i])))
     end
     if length(findall(x -> x == NaN, prho)) == 0  # make sure there weren't too many edges, 
         allCoefs[targInd,regressIndsMat] = prho
@@ -291,7 +295,6 @@ if priorMergedTfsFile != "" # there could be merged TFs
     keepInds = setdiff(1:totNetTfs,rmInds)
     # remove merged TFs and add individual TFs
     if length(addRegs) > 0
-        println("hello world")
         allPredictors = vcat(vcat(allPredictors[keepInds]),addRegs)
         allStabsTest = [allStabsTest[:,keepInds] addInts]
         allCoefs = [allCoefs[:,keepInds] addCoefs]
@@ -355,6 +358,15 @@ for qind = 1:totQuants
 end
 
 
+open("targs_100_200ss_2.txt","w") do io 
+    writedlm(io, targs)
+end
+open("regs_100_200ss_2.txt","w") do io 
+    writedlm(io, regs)
+end
+open("rankings_100_200ss_2.txt","w") do io
+    writedlm(io, rankings)
+end
 
 @save outMat predictorMat responseMat mergeTfLocVec allStabsTest allCoefs allQuants inPriorMat targGenes allPredictors allStabsMergedTFs regs targs rankings coefVec quantiles quantilesRefined inPriorVec instabSource
 

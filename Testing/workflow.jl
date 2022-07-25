@@ -28,9 +28,10 @@ include("../julia_fxns/buildTRNs_mLassoStARS.jl")
 
 ## 1. Import gene expression data, list of regulators, list of target genes
 normGeneExprFile = "../inputs/RNAseq_inputs/geneExpression/th17_RNAseq254_DESeq2_VSDcounts.txt"
-targGeneFile = "../inputs/RNAseq_inputs/targRegLists/targetGenes_names_trunc.txt"
+targGeneFile = "../inputs/RNAseq_inputs/targRegLists/targetGenes_names_trunc100.txt"
 potRegFile = "../inputs/RNAseq_inputs/targRegLists/potRegs_names.txt"
-tfaGeneFile = "../inputs/RNAseq_inputs/targRegLists/genesForTFA.txt"
+#tfaGeneFile = "../inputs/RNAseq_inputs/targRegLists/genesForTFA.txt"
+tfaGeneFile = ""
 
 currFile = normGeneExprFile
 fid = open(currFile)
@@ -60,10 +61,10 @@ tock()
 println("3. estimateInstabilitiesTRNbStARS.jl")
 
 lambdaBias = .5
-tfaOpt = "_TFmRNA" # options are "_TFmRNA" or ""
+tfaOpt = "" # options are "_TFmRNA" or ""
 totSS = 50
 targetInstability = .05
-lambdaMin = .01
+lambdaMin = .000001
 lambdaMax = 1
 extensionLimit = 1
 totLogLambdaSteps = 25 # will have this many steps per log10 within bStARS lambda range
@@ -80,7 +81,7 @@ catch
 end
 
 netSummary = priorName * "_bias" * string(100*lambdaBias) * tfaOpt
-instabOutMat = "/Users/kat6ti/Documents/Inferelator_Julia/outputs/instabOutMat.jl"
+instabOutMat = "../outputs/instabOutMat.jl"
 
 tick()
 estimateInstabilitiesTRNbStARS(geneExprMat,tfaMat,lambdaBias,tfaOpt,
@@ -117,11 +118,7 @@ end
 trnOutMat = networkSubDir * "/" * netSummary
 outNetFileSparse = networkSubDir * netSummary * "_sp.tsv"
 networkHistDir = networkSubDir * "Histograms"
-try
-    mkdir(networkHistDir)
-catch
-    ##
-end
+
 subsampHistPdf = networkHistDir * netSummary * "_ssHist"
 outMat ="../outputs/trnOutMat.jld"
 

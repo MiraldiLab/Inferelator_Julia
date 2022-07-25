@@ -112,7 +112,7 @@ uniNoPriorRegs = setdiff(potRegs_mRNA, pRegs)
 uniNoPriorRegInds = findall(in(uniNoPriorRegs), potRegs_mRNA)
 allPredictors = vcat(pRegs, uniNoPriorRegs)
 totPreds = length(allPredictors)
-
+67
 
 vals = intersect(targGenes,pTargs)
 targGeneInds = findall(in(pTargs), targGenes)
@@ -152,7 +152,7 @@ else # have to set prior inds to zero for TFs in TFA that don't have prior info
         if sum(abs.(priorMat[:,pr])) == 0 # we have no target edges to estimate TF's TFA
             targInd = findall(x -> x==allPredictors[pr], targGenes)
             if length(targInd) > 0 # And TF is in the predictor set
-                priorWeightsMat[targInd,pr] = Inf
+                priorWeightsMat[targInd,pr] .= Inf
             end
         end
     end

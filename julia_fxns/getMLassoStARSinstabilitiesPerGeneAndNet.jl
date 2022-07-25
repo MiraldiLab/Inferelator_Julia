@@ -94,7 +94,9 @@ for res = 1:totResponses
         currPreds = zscore(transpose(predictorMat[predInds,subsamp]));
         currResponses = zscore(responseMat[res,subsamp])
         # use glmnet to solve the LASSO problem
+        tick()
         lsoln = glmnet(currPreds, currResponses, penalty_factor = penaltyfactor, lambda = lambdaRange, alpha = 1.0)        
+        tock()
         # lsoln.beta == predictors X lambda range, coefficient matrix
         #currBetas = reverse(lsoln.betas) # flip so that the lambdas are increasing
         currBetas = lsoln.betas
@@ -117,7 +119,7 @@ for res = 1:totResponses
     maxUb = (findmax(aveInstabilities))
     instabSUP = aveInstabilities
     maxUbInd = first(Tuple(maxUb[2]))
-    instabSUP[1:maxUbInd,1] .= maxUb[1]
+    instabSUP[maxUbInd:end,1] .= maxUb[1]
     geneInstabilities[res,:] = instabSUP
 end
 
@@ -125,7 +127,7 @@ println("Gene Instabilities Estimated")
 ## calculate instabilities network-wise
 currSS = zeros(totResponses,totPreds)
 instabRange = zeros(totLambdas,1)
-for lind = totLambdas:-1:1 # start at highest lambda (lowest instability and work down)
+for lind = 1:totLambdas # start at highest lambda (lowest instability and work down)
     currSS[:,:] = ssMatrix[lind,:,:]    
     theta2 = (1/totSS)*currSS # empirical edge probability, responses X currPreds
     instabilitiesPerEdge = 2*(theta2 .* (1 .- theta2))

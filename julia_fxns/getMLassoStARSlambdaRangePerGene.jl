@@ -158,15 +158,18 @@ for res = 1:totResponses # can be a parfor loop
     predInds = responsePredInds[res]
     currPredNum = length(predInds)
     penaltyfactor = priorWeightsMat[res, predInds]
-    totEdges = totEdges + currPredNum;
-    ssVals = zeros(totLambdas,currPredNum);
+    totEdges = totEdges + currPredNum
+    ssVals = zeros(totLambdas,currPredNum)
     for ss = 1:totSS
         subsamp = subsamps[ss,:]
         currPreds = zscore(transpose(predictorMat[predInds,subsamp])) 
         currResponses = zscore(responseMat[res,subsamp])
-        lsoln = glmnet(currPreds, currResponses, penalty_factor = penaltyfactor, lambda = lambdaRange, alpha = 1.0)     
+        tick()
+        lsoln = glmnet(currPreds, currResponses, penalty_factor = penaltyfactor, lambda = lambdaRange, alpha = 1.0)
+        #lsoln2 = fit(LassoPath, currPreds, currResponses, penalty_factor = penaltyfactor, α=1, λ=lambdaRange[2:end], maxncoef = 800, cd_maxiter=100_000)
+        tock()
         # lsoln.beta == predictors X lambda range, coefficient matrix
-        currBetas = reverse(lsoln.betas) # flip so that the lambdas are increasing
+        currBetas = lsoln.betas # flip so that the lambdas are increasing
             # abs(sign()) as we only want to track nonzero edge occurrences
         ssVals = ssVals + abs.(sign.(currBetas))'
     end
@@ -186,22 +189,23 @@ for res = 1:totResponses
     maxLb = findmax(instabilitiesLb[res,:])
     maxLbInd = findall(x -> x == maxLb[1], instabilitiesLb[res,:])
     maxLb = maxLb[1]
-    instabilitiesLb[res,1:maxLbInd[end]] .= maxLb
+    instabilitiesLb[res,maxLbInd[end]:end] .= maxLb
     maxUb = findmax(instabilitiesUb[res,:])
     maxUbInd = findall(x -> x == maxUb[1], instabilitiesUb[res,:])
     maxUb = maxUb[1]
-    instabilitiesUb[res,1:maxUbInd[end]] .= maxUb
+    instabilitiesUb[res,maxUbInd[end]:end] .= maxUb
     # find the minimum lambda for the gene, based on maximum for upper bound
     # we are less interested in high instability lambdas, so okay to use
     # upper bound
     xx = findmin(abs.(instabilitiesLb[res,:] .- targetMaxInstability))
-    xx = findall(x -> x == xx[1],abs.(instabilitiesLb[res,:] .- targetMaxInstability))
-    maxLambdas[res] = reverse(lambdaRange)[xx[end]] # to the right
+    #xx = findall(x -> x == xx[1],abs.(instabilitiesLb[res,:] .- targetMaxInstability))
+    xx = xx[2]
+    minLambdas[res] = (lambdaRange)[xx[end]] # to the right
     # find the lambda nearest the min instability worth considering, use
     # upper bound as that will be sure to find an lambda >= target instability lambda 
     xx = findmin(abs.(instabilitiesUb[res,:] .- targetMinInstability))
     xx = findall(x -> x == xx[1], abs.(instabilitiesUb[res,:] .- targetMinInstability))
-    minLambdas[res] = reverse(lambdaRange)[xx[end]]  # to the right
+    maxLambdas[res] = (lambdaRange)[xx[end]]  # to the right
     # note for typical bStARS, where you know what instability cutoff you
     # want you'd use the upperbound to find the min lambda and the lb to
     # find the max lambda    
@@ -228,16 +232,16 @@ netInstabilitiesUb = netInstabilitiesUb ./ totEdges
 netInstabilitiesLb = netInstabilitiesLb ./ totEdges
 maxLb = findmax(netInstabilitiesLb)
 maxLbInd = findall(x -> x == maxLb[1], netInstabilitiesLb)
-netInstabilitiesLb[1:maxLbInd[end]] .= maxLb[1] # take supremum for lambdas smaller than instability max
+netInstabilitiesLb[maxLbInd[end]:end] .= maxLb[1] # take supremum for lambdas smaller than instability max
 maxUb = findmax(netInstabilitiesUb)
 maxUbInd = (findall(x -> x == maxUb[1], netInstabilitiesUb))
-netInstabilitiesUb[1:maxUbInd[end]] .= maxUb[1]
+netInstabilitiesUb[maxUbInd[end]:end] .= maxUb[1]
 xx = findmin(abs.(netInstabilitiesLb .- targetMaxInstability))
 maxInstInd = findall(x -> x == xx[1], abs.(netInstabilitiesLb .- targetMaxInstability))
-minLambdaNet = reverse(lambdaRange)[maxInstInd[end]]
+minLambdaNet = (lambdaRange)[maxInstInd[end]]
 xx = findmin(abs.(netInstabilitiesUb .- targetMinInstability))
 minInstInd = findall(x -> x == xx[1], abs.(netInstabilitiesUb .- targetMinInstability))
-maxLambdaNet = reverse(lambdaRange)[minInstInd[end]]
+maxLambdaNet = (lambdaRange)[minInstInd[end]]
 
 
 

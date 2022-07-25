@@ -62,7 +62,7 @@ totGenes = size(targGeneMat)[1]
 totConds = size(targGeneMat)[2]
 
 println("Case 1")
-## Case 1: TF mRNA, use the unmerged prior, limit prior to potential 
+## Case 1: TF mRNA, use the unmerged prior, limit prior to potential regs
 #fid = open(priorFile)
 # get first line and see what regulators we have
 #tline = readline(fid, keep=false)
@@ -103,6 +103,7 @@ pTargIndsTmp = findall(in(tfaGenes),pTargsTmp)
 pRegsNoTfa = intersect(pRegsTmp, potRegs)
 pTargsNoTfa = intersect(pTargsTmp, tfaGenes)
 pTargsNoTfa = convert(Vector{String}, pTargsNoTfa)
+pRegsNoTfa = convert(Vector{String}, pRegsNoTfa)
 priorMatrixNoTfa = pIntsTmp[pTargIndsTmp, pRegsIndsTmp]
 
 # output mRNA estimates for regulators without TFA
@@ -117,7 +118,7 @@ println("Case 2")
 # mergeDegenreatePriorTFs.py exist
 mergedTFsExist = 1
 mergedFile = replace(priorFile,".tsv" =>"_merged.tsv")
-mergedTFs = replace(priorFile,".tsv" => "_mergedTFs.txt")
+mergedTFs = replace(priorFile,".tsv" => "_mergedTfs.txt")
 file1 = isfile(mergedFile)
 file2 = isfile(mergedTFs)
 if(file1 == false || file2 == false)   
@@ -163,6 +164,7 @@ if mergedTFsExist == 1
             pTargsTmp = pTargsTmp[2:length(pTargsTmp)]
         end
         pIntsTmp = C[2:end,2:end]  
+        pIntsTmp = convert(Matrix{Float64},pIntsTmp)
     end        
 end 
 

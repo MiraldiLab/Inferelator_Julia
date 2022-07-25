@@ -43,14 +43,6 @@ eps = 1E-10; # target genes whose standard deviation across all samples is
 
 ## input gene expression data
 currFile = normGeneExprFile;
-#fid = open(currFile)
-#tline = readline(fid, keep=false)
-#conditionsc = split(tline,"\t")
-#if(conditionsc[1] == "")
-#  conditionsc = conditionsc[2:end]
-#end
-#totSamps = length(conditionsc) 
-#close(fid)
 
 #get input data
 fid = open(currFile);
@@ -88,13 +80,14 @@ if remove != []
   println("Target gene without variation, removed from analysis:")
   println(remove)
 end
-keep = setdiff(1:length(stds),Zstd)
+keep = setdiff(targGenes, remove)
+keep = findall(in(keep), targGenes)
 targGenes = targGenes[keep]
 targGeneMat = targGeneMat[keep,:]
 println(length(targGenes) , " target genes total")
 if length(targGenesTmp) > length(targGenes)
   miss = setdiff(targGenesTmp,targGenes);
-  println("The following ", num2str(length(missing)), " target genes were not found:")
+  println("The following ", length(miss), " target genes were not found:")
   println(miss)
 end
 
@@ -118,12 +111,13 @@ if length(potRegs) > length(potRegs_mRNA)
 end
 
 ## genes to be included in TFA estimation (e.g., nominally expressed)
-if tfaGeneFile != nothing
+if tfaGeneFile != ""
     fid = open(tfaGeneFile)
     C = readdlm(fid,String,skipstart=0)
     close(fid)
     tfaGenesTmp = C
-    tfaGenesTmp = convert(Matrix{String}, tfaGenesTmp)
+    tfaGenesTmp = tfaGenesTmp[:,1]
+    tfaGenesTmp = convert(Vector{String}, tfaGenesTmp)
 else
     println("No TFA gene file found, all genes will be used to estimate TFA.")
     tfaGenesTmp = genesc;
