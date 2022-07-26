@@ -274,7 +274,7 @@ if priorMergedTfsFile != "" # there could be merged TFs
         rmInds = [rmInds; inputLocs];
         if length(inputLocs) > 0
             indTfs = intersect(permutedims(split(tmergeVals[mind],", ")),pRegsNoTfa); # intersect ensures that TF was a potential regulator (e.g., based on gene expression)
-            println([mTf, " expanded to ", (indTfs * ", "), "."])
+            #println([mTf, " expanded to ", (indTfs * ", "), "."])
             totIndTfs = length(indTfs)
             for indt = 1:totIndTfs
                 indTf = indTfs[indt]
