@@ -76,7 +76,7 @@ priorMat = load(instabOutMat, "priorMat")
 targGenes = load(instabOutMat, "targGenes")
 allPredictors = load(instabOutMat, "allPredictors")
 totSS = load(instabOutMat, "totSS")
-pRegsNoTfa = load(geneExprMat,"pRegsNoTfa")
+pRegsNoTfa = load(tfaMat,"pRegsNoTfa")
 
 totLambdas, totNetGenes, totNetTfs = size(ssMatrix)
 ssOfInt = zeros(totNetGenes,totNetTfs)
@@ -211,9 +211,6 @@ for targ = 1:totUniTargs
     currTarg = uniTargs[targ]
     targRankInds = last.(Tuple.(findall(x -> x == currTarg, keptTargs)))
     currRegs = regs[targRankInds]
-    if length(currRegs) > 13
-        currRegs = currRegs[1:13]
-    end
     targInd = last.(Tuple.(findall(x -> x == currTarg, targGenes)))
     tfsPerGene[targ] = length(targRankInds)
     tfsPerGene = Int.(tfsPerGene)
@@ -231,7 +228,8 @@ for targ = 1:totUniTargs
         #else
         #   push!(prho,partialcor(currTargVals,vec(currPredVals[:,i]), currPredVals[:,inds]))
         #end
-        push!(prho,corspearman(currTargVals, vec(currPredVals[:,i])))
+        #push!(prho,corspearman(currTargVals, vec(currPredVals[:,i])))
+        push!(prho, cor(currTargVals, currPredVals[:,i]))
     end
     if length(findall(x -> x == NaN, prho)) == 0  # make sure there weren't too many edges, 
         allCoefs[targInd,regressIndsMat] = prho
@@ -242,9 +240,9 @@ for targ = 1:totUniTargs
     allStabsTest[targInd,regressIndsMat] = rankings[targRankInds[rankVecInds]] + round.(abs.(prho),digits = 2)
 end
 
-# save stabilities, targs and TFs before mergning -- needed for
+# save stabilities, targs and TFs before merging -- needed for
 # R^2_pred, LO analysis
- allStabsMergedTFs = allStabsTest
+allStabsMergedTFs = allStabsTest
 #     targsMergedTFs = targs;
 #     regsMergedTFs = regs;
 
