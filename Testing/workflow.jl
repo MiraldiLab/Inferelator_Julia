@@ -91,7 +91,8 @@ tock()
 ## 4. For a given instability cutoff and model size, rank TF-gene
 # interactions, calculate stabilities and network file for jp_gene_viz
 # visualizations
-priorMergedTfsFile = "../inputs/RNAseq_inputs/priors/" * priorName * "_mergedTfs.txt"
+#priorMergedTfsFile = "../inputs/RNAseq_inputs/priors/" * priorName * "_mergedTfs.txt"
+priorMergedTfsFile = ""
 try # not all priors have merged TFs and merged TF files
     isfile(priorMergedTfsFile) 
 catch
