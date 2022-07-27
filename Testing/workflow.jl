@@ -30,8 +30,8 @@ include("../julia_fxns/buildTRNs_mLassoStARS.jl")
 normGeneExprFile = "../inputs/RNAseq_inputs/geneExpression/th17_RNAseq254_DESeq2_VSDcounts.txt"
 targGeneFile = "../inputs/RNAseq_inputs/targRegLists/targetGenes_names_trunc100.txt"
 potRegFile = "../inputs/RNAseq_inputs/targRegLists/potRegs_names.txt"
-#tfaGeneFile = "../inputs/RNAseq_inputs/targRegLists/genesForTFA.txt"
-tfaGeneFile = ""
+tfaGeneFile = "../inputs/RNAseq_inputs/targRegLists/genesForTFA.txt"
+#tfaGeneFile = ""
 
 currFile = normGeneExprFile
 fid = open(currFile)

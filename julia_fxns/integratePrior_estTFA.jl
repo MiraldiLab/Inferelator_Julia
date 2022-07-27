@@ -62,22 +62,6 @@ totGenes = size(targGeneMat)[1]
 totConds = size(targGeneMat)[2]
 
 println("Case 1")
-## Case 1: TF mRNA, use the unmerged prior, limit prior to potential regs
-#fid = open(priorFile)
-# get first line and see what regulators we have
-#tline = readline(fid, keep=false)
-#pRegsTmp = split(tline, '\t')
-#if pRegsTmp[1] == ""
-#    pRegsTmp = pRegsTmp[2:end]
-#end
-#close(fid)
-
-# get the rest of the data using readdlm
-#fid = open(priorFile)
-#C = readdlm(fid,'\t','\n', skipstart=1)
-#close(fid)
-#pTargsTmp = C[:,1]
-#pIntsTmp = C[:,2:end]
 
 fid = open(priorFile)
 C = readdlm(fid,'\t','\n', skipstart=0)
@@ -124,6 +108,8 @@ file2 = isfile(mergedTFs)
 if(file1 == false || file2 == false)   
     mergedTFsExist = 0
 end
+
+mergedTFsExist = 0
 
 
 if mergedTFsExist == 1
@@ -192,7 +178,6 @@ keepTargs = Tuple.(findall(x -> x > 0, intsPerTarg))
 keepTargs = first.(keepTargs)
 pInts = pInts[keepTargs,:]
 pTargs = pTargs[keepTargs]
-pTargs = convert(Vector{String},pTargs)
 
 # make sure that target indices in prior and expression matrix
 # coordinate

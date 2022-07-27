@@ -112,7 +112,7 @@ uniNoPriorRegs = setdiff(potRegs_mRNA, pRegs)
 uniNoPriorRegInds = findall(in(uniNoPriorRegs), potRegs_mRNA)
 allPredictors = vcat(pRegs, uniNoPriorRegs)
 totPreds = length(allPredictors)
-67
+
 
 vals = intersect(targGenes,pTargs)
 targGeneInds = findall(in(pTargs), targGenes)
@@ -133,8 +133,6 @@ if tfaOpt != "" # use the mRNA levels of TFs
     predictorMat = currPredMat
     println("TF mRNA used.")
 end
-
-predictorMat = convert(Matrix{Float64},predictorMat)
 
 priorWeightsMat = ones(totTargGenes,totPreds) - (1-lambdaBias)*abs.(sign.(priorMat))
 
@@ -157,6 +155,7 @@ else # have to set prior inds to zero for TFs in TFA that don't have prior info
         end
     end
 end
+
 
 ## Check whether to use full gene expression matrix or exclude leave-out set 
 if leaveOutSampleList != ""

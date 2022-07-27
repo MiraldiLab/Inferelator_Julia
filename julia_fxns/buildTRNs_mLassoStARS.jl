@@ -172,7 +172,6 @@ rankings = sort(rankTmp2,rev=true)
 #inds = reduce(vcat, inds)
 regs = regs0[keepInds[inds]]
 targs = targs0[keepInds[inds]]
-totInfInts = length(rankings)
 
 
 ## convert the stabilities to quantiles according to meanEdgesPerGene

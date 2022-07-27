@@ -153,7 +153,7 @@ totEdges = 0   # denominator for network Instabilities
 # now we're building each model genewise
 # totResponses = 50;
 
-for res = 1:totResponses # can be a parfor loop
+for res = 2:totResponses # can be a parfor loop
     # limit to predictors with finite edges
     predInds = responsePredInds[res]
     currPredNum = length(predInds)
