@@ -172,6 +172,7 @@ rankings = sort(rankTmp2,rev=true)
 #inds = reduce(vcat, inds)
 regs = regs0[keepInds[inds]]
 targs = targs0[keepInds[inds]]
+totInfInts = length(rankings)
 
 
 ## convert the stabilities to quantiles according to meanEdgesPerGene
@@ -236,7 +237,8 @@ for targ = 1:totUniTargs
         println(currTarg, " pcorr was singular, # TFs = ", string(length(regressIndsMat)))
     end   
     allQuants[targInd,regressIndsMat] = quantiles[targRankInds[rankVecInds]]
-    allStabsTest[targInd,regressIndsMat] = rankings[targRankInds[rankVecInds]] + round.(abs.(prho),digits = 2)
+    #allStabsTest[targInd,regressIndsMat] = rankings[targRankInds[rankVecInds]] + round.(abs.(prho),digits = 2)
+    allStabsTest[targInd,regressIndsMat] = allStabsTest[targInd,regressIndsMat] + round.(abs.(prho),digits = 2)
 end
 
 # save stabilities, targs and TFs before merging -- needed for

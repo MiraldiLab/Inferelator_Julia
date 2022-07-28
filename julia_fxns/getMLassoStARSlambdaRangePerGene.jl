@@ -147,23 +147,30 @@ end
 
 # network-level instabilities, will be calculated as a weighted average of
 # gene instabilities, so that each edge has equal weight
-netInstabilitiesUb = zeros(totLambdas) 
-netInstabilitiesLb = zeros(totLambdas)
-totEdges = 0   # denominator for network Instabilities
+#netInstabilitiesUb = zeros(totLambdas) 
+#netInstabilitiesLb = zeros(totLambdas)
+netInstabilitiesLb = zeros(totResponses, totLambdas)
+netInstabilitiesUb = zeros(totResponses, totLambdas)
+totEdges = zeros(totResponses)   # denominator for network Instabilities
 # now we're building each model genewise
 # totResponses = 50;
 
-for res = 2:totResponses # can be a parfor loop
+Threads.@threads for res = 1:totResponses # can be a parfor loop
     # limit to predictors with finite edges
     predInds = responsePredInds[res]
     currPredNum = length(predInds)
     penaltyfactor = priorWeightsMat[res, predInds]
-    totEdges = totEdges + currPredNum
+    #totEdges = totEdges + currPredNum
+    totEdges[res] = currPredNum
     ssVals = zeros(totLambdas,currPredNum)
     for ss = 1:totSS
         subsamp = subsamps[ss,:]
-        currPreds = zscore(transpose(predictorMat[predInds,subsamp])) 
-        currResponses = zscore(responseMat[res,subsamp])
+        #currPreds = transpose(zscore((predictorMat[predInds,subsamp])))
+        dt = fit(ZScoreTransform, predictorMat[predInds, subsamp], dims=2)
+        currPreds = transpose(StatsBase.transform(dt, predictorMat[predInds, subsamp]))
+        #currResponses = zscore(responseMat[res,subsamp])
+        dt = fit(ZScoreTransform, responseMat[res, subsamp], dims=1)
+        currResponses = StatsBase.transform(dt, responseMat[res, subsamp])
         tick()
         lsoln = glmnet(currPreds, currResponses, penalty_factor = penaltyfactor, lambda = lambdaRange, alpha = 1.0)
         #lsoln2 = fit(LassoPath, currPreds, currResponses, penalty_factor = penaltyfactor, α=1, λ=lambdaRange[2:end], maxncoef = 800, cd_maxiter=100_000)
@@ -171,18 +178,22 @@ for res = 2:totResponses # can be a parfor loop
         # lsoln.beta == predictors X lambda range, coefficient matrix
         currBetas = lsoln.betas # flip so that the lambdas are increasing
             # abs(sign()) as we only want to track nonzero edge occurrences
-        ssVals = ssVals + abs.(sign.(currBetas))'
+        ssVals += abs.(sign.(currBetas))'
     end
     # calculate instabilities for the gene
     theta2 = (1/totSS)*ssVals # empirical edge probability
     instabilitiesLb[res,:] = 2 * (1/currPredNum) .* sum(theta2 .* (1 .- theta2), dims=2) # bStARS lower bound
-    netInstabilitiesLb = netInstabilitiesLb + currPredNum*(instabilitiesLb[res,:]) # weighted sum
+    #netInstabilitiesLb = netInstabilitiesLb + currPredNum*(instabilitiesLb[res,:]) # weighted sum
+    netInstabilitiesLb[res,:] = currPredNum*(instabilitiesLb[res,:])
     theta2mean = sum(theta2,dims=2)./currPredNum
     instabilitiesUb[res,:] = 2 * theta2mean .* (1 .- theta2mean) # bStARS upper bound
-    netInstabilitiesUb = netInstabilitiesUb + currPredNum*instabilitiesUb[res,:] # weighted sum
+    #netInstabilitiesUb = netInstabilitiesUb + currPredNum*instabilitiesUb[res,:] # weighted sum
+    netInstabilitiesUb[res,:] = currPredNum*instabilitiesUb[res,:]
 end
 
-
+totEdges = sum(totEdges)
+netInstabilitiesLb = sum(netInstabilitiesLb, dims=1)[:]
+netInstabilitiesUb = sum(netInstabilitiesUb, dims=1)[:]
 
 for res = 1:totResponses
     # take the supremum, find max Lambda, and set all smaller lambdas equal to that value 

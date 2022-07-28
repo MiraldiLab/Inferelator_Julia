@@ -79,14 +79,17 @@ for res = 1:totResponses
     push!(responsePredInds,findall(x -> x!=Inf, currWeights))
 end    
 
+#totEdges = 0 
+totEdges = zeros(totResponses)   # denominator for network Instabilities
+tick()
 ## build each response model individually
-for res = 1:totResponses 
+Threads.@threads for res = 1:totResponses 
     # get (finite) predictor indices for each response // filter
     currWeights = priorWeightsMat[res,:]
     # limit to predictors with finite lambda penalty (e.g., to exclude TF mRNA self-interaction loops)
     predInds = responsePredInds[res]
     currPredNum = length(predInds)
-    totEdges = currPredNum + totEdges
+    totEdges[res] = currPredNum 
     penaltyfactor = priorWeightsMat[res,predInds] 
     ssVals = zeros(totLambdas,currPredNum)
     for ss = 11:totSS
@@ -94,9 +97,7 @@ for res = 1:totResponses
         currPreds = zscore(transpose(predictorMat[predInds,subsamp]));
         currResponses = zscore(responseMat[res,subsamp])
         # use glmnet to solve the LASSO problem
-        tick()
         lsoln = glmnet(currPreds, currResponses, penalty_factor = penaltyfactor, lambda = lambdaRange, alpha = 1.0)        
-        tock()
         # lsoln.beta == predictors X lambda range, coefficient matrix
         #currBetas = reverse(lsoln.betas) # flip so that the lambdas are increasing
         currBetas = lsoln.betas
@@ -105,6 +106,7 @@ for res = 1:totResponses
     end
     ssMatrix[:,res,predInds] = ssVals
 end
+tock()
 
 
 for res = 1:totResponses    

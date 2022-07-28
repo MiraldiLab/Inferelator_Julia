@@ -30,8 +30,8 @@ include("../julia_fxns/buildTRNs_mLassoStARS.jl")
 normGeneExprFile = "../inputs/RNAseq_inputs/geneExpression/th17_RNAseq254_DESeq2_VSDcounts.txt"
 targGeneFile = "../inputs/RNAseq_inputs/targRegLists/targetGenes_names_trunc100.txt"
 potRegFile = "../inputs/RNAseq_inputs/targRegLists/potRegs_names.txt"
-tfaGeneFile = "../inputs/RNAseq_inputs/targRegLists/genesForTFA.txt"
-#tfaGeneFile = ""
+#tfaGeneFile = "../inputs/RNAseq_inputs/targRegLists/genesForTFA.txt"
+tfaGeneFile = ""
 
 currFile = normGeneExprFile
 fid = open(currFile)
@@ -64,7 +64,7 @@ lambdaBias = .5
 tfaOpt = "" # options are "_TFmRNA" or ""
 totSS = 50
 targetInstability = .05
-lambdaMin = .000001
+lambdaMin = .01
 lambdaMax = 1
 extensionLimit = 1
 totLogLambdaSteps = 25 # will have this many steps per log10 within bStARS lambda range
