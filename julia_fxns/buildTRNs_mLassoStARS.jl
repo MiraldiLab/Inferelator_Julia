@@ -238,7 +238,7 @@ for targ = 1:totUniTargs
     end   
     allQuants[targInd,regressIndsMat] = quantiles[targRankInds[rankVecInds]]
     #allStabsTest[targInd,regressIndsMat] = rankings[targRankInds[rankVecInds]] + round.(abs.(prho),digits = 2)
-    allStabsTest[targInd,regressIndsMat] = allStabsTest[targInd,regressIndsMat] + round.(abs.(prho),digits = 2)
+    allStabsTest[targInd,regressIndsMat] = allStabsTest[targInd,regressIndsMat] + transpose(round.(abs.(prho),digits = 2))
 end
 
 # save stabilities, targs and TFs before merging -- needed for

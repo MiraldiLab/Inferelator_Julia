@@ -92,10 +92,14 @@ Threads.@threads for res = 1:totResponses
     totEdges[res] = currPredNum 
     penaltyfactor = priorWeightsMat[res,predInds] 
     ssVals = zeros(totLambdas,currPredNum)
-    for ss = 11:totSS
+    for ss = 1:totSS
         subsamp = subsamps[ss,:]
-        currPreds = zscore(transpose(predictorMat[predInds,subsamp]));
-        currResponses = zscore(responseMat[res,subsamp])
+        #currPreds = zscore(transpose(predictorMat[predInds,subsamp]));
+        dt = fit(ZScoreTransform, predictorMat[predInds, subsamp], dims=2)
+        currPreds = transpose(StatsBase.transform(dt, predictorMat[predInds, subsamp]))
+        #currResponses = zscore(responseMat[res,subsamp])
+        dt = fit(ZScoreTransform, responseMat[res, subsamp], dims=1)
+        currResponses = StatsBase.transform(dt, responseMat[res, subsamp])
         # use glmnet to solve the LASSO problem
         lsoln = glmnet(currPreds, currResponses, penalty_factor = penaltyfactor, lambda = lambdaRange, alpha = 1.0)        
         # lsoln.beta == predictors X lambda range, coefficient matrix
