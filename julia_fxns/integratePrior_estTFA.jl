@@ -71,6 +71,8 @@ if pRegsTmp[1] == ""
 end
 pRegsTmp = convert(Vector{String}, pRegsTmp)
 C = C[2:end,:]
+inds = sortperm(C[:,1])
+C = C[inds,:]
 pTargsTmp = C[:,1]
 pTargsTmp = convert(Vector{String}, pTargsTmp)
 pIntsTmp = C[:,2:end]
@@ -187,7 +189,7 @@ pTargIndsTmp = first.(pTargs2Inds)
 expTargInds = Tuple.(findall(in(pTargs), tfaGenes))
 expTargInds = first.(expTargInds)
 priorMatrix = pInts[pTargIndsTmp,:]
-priorMatrix = convert(Matrix{Int64}, priorMatrix)
+priorMatrix = convert(Matrix{Float64}, priorMatrix)
 # get target gene matrix
 targExp = tfaGeneMat[expTargInds,:]
 targExp = convert(Matrix{Float64}, targExp)

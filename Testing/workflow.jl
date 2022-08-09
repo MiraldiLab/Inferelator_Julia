@@ -27,11 +27,11 @@ include("../julia_fxns/estimateInstabilitiesTRNbStARS.jl")
 include("../julia_fxns/buildTRNs_mLassoStARS.jl")
 
 ## 1. Import gene expression data, list of regulators, list of target genes
-normGeneExprFile = "../inputs/RNAseq_inputs/geneExpression/th17_RNAseq254_DESeq2_VSDcounts.txt"
-targGeneFile = "../inputs/RNAseq_inputs/targRegLists/targetGenes_names_trunc100.txt"
-potRegFile = "../inputs/RNAseq_inputs/targRegLists/potRegs_names.txt"
-#tfaGeneFile = "../inputs/RNAseq_inputs/targRegLists/genesForTFA.txt"
+normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk/scrna_T_bulk_celltype_All_minFrac5_vst_combat.txt"
+targGeneFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk/genes_T_bulk_celltype_minFrac5.txt"
+potRegFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/GRN/pot_regs.txt"
 tfaGeneFile = ""
+
 
 currFile = normGeneExprFile
 fid = open(currFile)
@@ -48,7 +48,7 @@ tock()
 
 ## 2. Given a prior of TF-gene interactions, estimate transcription factor activities (TFAs) using prior-based TFA and TF mRNA levels
 priorName = "ATAC_Th17"
-priorFile = "../inputs/RNAseq_inputs/priors/" * priorName * ".tsv"
+priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Prior/prior_T_v1_FIMOp5_normF.tsv"
 edgeSS = 0
 minTargets = 3
 
@@ -61,7 +61,7 @@ tock()
 println("3. estimateInstabilitiesTRNbStARS.jl")
 
 lambdaBias = .5
-tfaOpt = "" # options are "_TFmRNA" or ""
+tfaOpt = "_TFmRNA" # options are "_TFmRNA" or ""
 totSS = 50
 targetInstability = .05
 lambdaMin = .01
@@ -69,7 +69,7 @@ lambdaMax = 1
 extensionLimit = 1
 totLogLambdaSteps = 25 # will have this many steps per log10 within bStARS lambda range
 bStarsTotSS = 5
-subsampleFrac = 10*(1/sqrt(totSamps))
+subsampleFrac = 0.63
 leaveOutSampleList = ""
 leaveOutInf = ""
 instabilitiesDir = "../outputs/" * string(targetInstability) * "_SS" * string(totSS) * "_bS" * string(bStarsTotSS)
@@ -91,7 +91,6 @@ tock()
 ## 4. For a given instability cutoff and model size, rank TF-gene
 # interactions, calculate stabilities and network file for jp_gene_viz
 # visualizations
-#priorMergedTfsFile = "../inputs/RNAseq_inputs/priors/" * priorName * "_mergedTfs.txt"
 priorMergedTfsFile = ""
 try # not all priors have merged TFs and merged TF files
     isfile(priorMergedTfsFile) 

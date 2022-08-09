@@ -55,6 +55,8 @@ end
 conditionsc = convert(Vector{String}, conditionsc)
 totSamps = length(conditionsc) 
 C = C[2:end,:]
+inds = sortperm(C[:,1])
+C = C[inds,:]
 genesc = C[:,1]
 genesc = convert(Vector{String}, genesc)
 ncounts = C[:,2:end]
@@ -68,7 +70,6 @@ fid = open(targGeneFile)
 C = readdlm(fid, String, skipstart=0)
 close(fid)
 targGenesTmp = C
-xx = intersect(Set(genesc), Set(targGenesTmp))
 indsMat = findall(in(targGenesTmp), genesc)
 targGenes = genesc[indsMat]
 targGeneMat = ncounts[indsMat,:]
