@@ -171,10 +171,7 @@ Threads.@threads for res = 1:totResponses # can be a parfor loop
         #currResponses = zscore(responseMat[res,subsamp])
         dt = fit(ZScoreTransform, responseMat[res, subsamp], dims=1)
         currResponses = StatsBase.transform(dt, responseMat[res, subsamp])
-        tick()
         lsoln = glmnet(currPreds, currResponses, penalty_factor = penaltyfactor, lambda = lambdaRange, alpha = 1.0)
-        #lsoln2 = fit(LassoPath, currPreds, currResponses, penalty_factor = penaltyfactor, α=1, λ=lambdaRange[2:end], maxncoef = 800, cd_maxiter=100_000)
-        tock()
         # lsoln.beta == predictors X lambda range, coefficient matrix
         currBetas = lsoln.betas # flip so that the lambdas are increasing
             # abs(sign()) as we only want to track nonzero edge occurrences
