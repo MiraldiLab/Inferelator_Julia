@@ -27,11 +27,19 @@ include("../julia_fxns/estimateInstabilitiesTRNbStARS.jl")
 include("../julia_fxns/buildTRNs_mLassoStARS.jl")
 
 ## 1. Import gene expression data, list of regulators, list of target genes
+Network_Name = "Test"
 normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk/scrna_T_bulk_celltype_All_minFrac5_vst_combat.txt"
 targGeneFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk/genes_T_bulk_celltype_minFrac5.txt"
 potRegFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/GRN/pot_regs.txt"
 tfaGeneFile = ""
-
+instabilitiesDir = "../outputs/" * Network_Name 
+priorName = "ATAC_Th17"
+priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Prior/prior_T_v1_FIMOp5_normF.tsv"
+try
+    mkdir(instabilitiesDir)
+catch
+    ##
+end
 
 currFile = normGeneExprFile
 fid = open(currFile)
@@ -41,19 +49,17 @@ totSamps = length(split(tline, '\t')) - 1
 close(fid)
 
 println("1. importGeneExpGeneLists.jl")
-geneExprMat = "../outputs/geneExprMat.jld"
+geneExprMat = instabilitiesDir * "/geneExprMat.jld"
 tick()
 importGeneExpGeneLists(normGeneExprFile,targGeneFile,potRegFile,geneExprMat,tfaGeneFile)
 tock()
 
 ## 2. Given a prior of TF-gene interactions, estimate transcription factor activities (TFAs) using prior-based TFA and TF mRNA levels
-priorName = "ATAC_Th17"
-priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Prior/prior_T_v1_FIMOp5_normF.tsv"
 edgeSS = 0
 minTargets = 3
 
 println("2. integratePrior_estTFA.jl")
-tfaMat="../outputs/tfaMat.jld"
+tfaMat= instabilitiesDir * "/tfaMat.jld"
 tick()
 integratePrior_estTFA(geneExprMat,priorFile,minTargets,edgeSS, tfaMat)
 tock()
@@ -72,16 +78,9 @@ bStarsTotSS = 5
 subsampleFrac = 0.63
 leaveOutSampleList = ""
 leaveOutInf = ""
-instabilitiesDir = "../outputs/" * string(targetInstability) * "_SS" * string(totSS) * "_bS" * string(bStarsTotSS)
-
-try
-    mkdir(instabilitiesDir)
-catch
-    ##
-end
 
 netSummary = priorName * "_bias" * string(100*lambdaBias) * tfaOpt
-instabOutMat = "../outputs/instabOutMat.jl"
+instabOutMat = instabilitiesDir * "/instabOutMat.jl"
 
 tick()
 estimateInstabilitiesTRNbStARS(geneExprMat,tfaMat,lambdaBias,tfaOpt,
@@ -100,32 +99,27 @@ end
 
 meanEdgesPerGene = 10
 targetInstability = .05
-networkDir = replace(instabilitiesDir,"instabilities" => "networks")
+networkDir = instabilitiesDir
 instabSource = "Network"
-try    
-    mkdir(networkDir)
-catch
-    ##
-end
 
-networkSubDir = networkDir * "/" * instabSource * string(targetInstability) * "_" * string(meanEdgesPerGene) * "tfsPerGene"
-try 
-    mkdir(networkSubDir)
-catch
-    ##
-end
+#networkSubDir = networkDir * "/" * instabSource * string(targetInstability) * "_" * string(meanEdgesPerGene) * "tfsPerGene"
+#try 
+#    mkdir(networkSubDir)
+#catch
+#    ##
+#end
 
-trnOutMat = networkSubDir * "/" * netSummary
-outNetFileSparse = networkSubDir * netSummary * "_sp.tsv"
-networkHistDir = networkSubDir * "Histograms"
+trnOutMat = networkDir * "/" * netSummary
+outNetFileSparse = networkDir * "/" * netSummary * "_sp.tsv"
+networkHistDir = networkDir * "Histograms"
 
 subsampHistPdf = networkHistDir * netSummary * "_ssHist"
-outMat ="../outputs/trnOutMat.jld"
+outMat = networkDir * "/trnOutMat.jld"
 
 println("4. buildTRNs_mLassoStARS.m")
 tick()
 buildTRNs_mLassoStARS(instabOutMat,tfaMat,priorMergedTfsFile, meanEdgesPerGene,targetInstability,instabSource,
-    subsampHistPdf,trnOutMat,outNetFileSparse, outMat)
+    subsampHistPdf,trnOutMat,outNetFileSparse, outMat, networkDir)
 tock()
 
 tock()

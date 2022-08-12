@@ -5,7 +5,7 @@ using DelimitedFiles
 
 function buildTRNs_mLassoStARS(instabOutMat,tfaMat,priorMergedTfsFile,
     meanEdgesPerGene,targInstability,instabSource,subsampHistPdf,trnOutMat,
-    outNetFileSparse, outMat)
+    outNetFileSparse, outMat, networkDir)
 ## buildTRNs_mLassoStARS(instabOutMat,tfaMat,meanEdgesPerGene,...
 #    targInstability,instabSource,plotSubSampHist,trnOutMat,...
 #    outNetFileSparse)
@@ -356,15 +356,19 @@ for qind = 1:totQuants
     lastQuant = currQuant
 end
 
+networkMatrix = hcat(targs, regs, rankings)
 
-open("targs_100_200ss_2.txt","w") do io 
+open(networkDir * "/targs.txt","w") do io 
     writedlm(io, targs)
 end
-open("regs_100_200ss_2.txt","w") do io 
+open(networkDir * "/regs.txt","w") do io 
     writedlm(io, regs)
 end
-open("rankings_100_200ss_2.txt","w") do io
+open(networkDir * "/rankings.txt","w") do io
     writedlm(io, rankings)
+end
+open(networkDir * "/edges.txt","w") do io
+    writedlm(io, networkMatrix)
 end
 
 @save outMat predictorMat responseMat mergeTfLocVec allStabsTest allCoefs allQuants inPriorMat targGenes allPredictors allStabsMergedTFs regs targs rankings coefVec quantiles quantilesRefined inPriorVec instabSource
