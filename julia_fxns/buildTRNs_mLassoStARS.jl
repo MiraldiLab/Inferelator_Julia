@@ -356,7 +356,7 @@ for qind = 1:totQuants
     lastQuant = currQuant
 end
 
-networkMatrix = hcat(targs, regs, rankings)
+networkMatrix = hcat(regs, targs, rankings)
 
 open(networkDir * "/targs.txt","w") do io 
     writedlm(io, targs)
