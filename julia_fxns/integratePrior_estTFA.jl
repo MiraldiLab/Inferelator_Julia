@@ -203,7 +203,7 @@ totPreds = size(priorMatrix)[2]
 if edgeSS > 0
     tfas = zeros(edgeSS,totPreds,totConds)
     for ss = 1:edgeSS
-        sPrior = zeros(Int8, totTargs,totPreds)
+        sPrior = zeros(Float64, totTargs,totPreds)
         for col = 1:totPreds
             currTargs = priorMatrix[:,col]
             targInds = findall(x -> x != 0, currTargs)

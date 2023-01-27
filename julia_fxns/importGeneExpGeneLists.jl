@@ -107,7 +107,7 @@ println(length(potRegs_mRNA), " potential regulators with expression data.")
 
 if length(potRegs) > length(potRegs_mRNA)
   miss = setdiff(potRegs,potRegs_mRNA);
-  println("The following ", length(missing), " regulators have no expression data:")
+  println("The following ", length(miss), " regulators have no expression data:")
   println(miss)
 end
 

@@ -27,19 +27,30 @@ include("../julia_fxns/estimateInstabilitiesTRNbStARS.jl")
 include("../julia_fxns/buildTRNs_mLassoStARS.jl")
 
 ## 1. Import gene expression data, list of regulators, list of target genes
-Network_Name = "Test"
-normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk/scrna_T_bulk_celltype_All_minFrac5_vst_combat.txt"
-targGeneFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk/genes_T_bulk_celltype_minFrac5.txt"
-potRegFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/GRN/pot_regs.txt"
-tfaGeneFile = ""
+Network_Name = "Barski_MEMT_Network_TFA_Batch2"
+#normGeneExprFile = "/data/miraldiNB/anthony/projects/Tfh10_downsampling/inputs/samples/full_vst_combat.tsv"
+#targGeneFile = "/data/miraldiNB/wayman/projects/Tfh10/outs/202204/GRN/inputs/target_genes/gene_targ_Tfh10_DESeq2_CellType_SigCellTypelog2FC1pct05_SigAgelog2FC0p5pct05.txt"
+#potRegFile = "/data/miraldiNB/wayman/projects/Tfh10/outs/202204/GRN/inputs/pot_regs/TF_scrna_Tfh10_bulk_CellType_All_minFrac5_vst_combat_SigCellTypeLog2FC1_SigAgeLog2FC0p25_ExpVST_TFA_50pctl.txt"
+#tfaGeneFile = ""
 instabilitiesDir = "../outputs/" * Network_Name 
-priorName = "ATAC_Th17"
-priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Prior/prior_T_v1_FIMOp5_normF.tsv"
+#priorName = "ATAC_Tfh10"
+#priorFile = "/data/miraldiNB/wayman/projects/Tfh10/outs/202204/GRN/inputs/priors/priors_all/prior_Tfh10_simple_merged_scATAC_CellType_minCell200_sizeFrag50_P8_FIMO_CISBPv2_Mm_Hs_FIMOp5_normF.tsv"
 try
     mkdir(instabilitiesDir)
 catch
     ##
 end
+
+normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Network/Pseudobulk_RNA/batch_filtered.txt"
+targGeneFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk/genes_T_bulk_celltype_minFrac5.txt"
+potRegFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/GRN/pot_regs.txt"
+tfaGeneFile = ""
+priorName = "MEMT_FIMOp5_normF.tsv"
+priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Network/Prior/MEMT_FIMOp5_normF.tsv"
+#priorName = "prior_T_v1_FIMOp5_normF"
+#priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Prior/prior_T_v1_FIMOp5_normF.tsv"
+
+
 
 currFile = normGeneExprFile
 fid = open(currFile)
@@ -55,7 +66,7 @@ importGeneExpGeneLists(normGeneExprFile,targGeneFile,potRegFile,geneExprMat,tfaG
 tock()
 
 ## 2. Given a prior of TF-gene interactions, estimate transcription factor activities (TFAs) using prior-based TFA and TF mRNA levels
-edgeSS = 0
+edgeSS = 10
 minTargets = 3
 
 println("2. integratePrior_estTFA.jl")
@@ -67,13 +78,13 @@ tock()
 println("3. estimateInstabilitiesTRNbStARS.jl")
 
 lambdaBias = .5
-tfaOpt = "_TFmRNA" # options are "_TFmRNA" or ""
-totSS = 50
+tfaOpt = "TFA" # options are "_TFmRNA" or ""
+totSS = 100
 targetInstability = .05
 lambdaMin = .01
 lambdaMax = 1
 extensionLimit = 1
-totLogLambdaSteps = 25 # will have this many steps per log10 within bStARS lambda range
+totLogLambdaSteps = 10 # will have this many steps per log10 within bStARS lambda range
 bStarsTotSS = 5
 subsampleFrac = 0.63
 leaveOutSampleList = ""
