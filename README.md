@@ -1,2 +1,3 @@
 # Inferelator_Julia
-![9BFCA6F3-0B24-404D-949D-8F6C5D0233E4](https://user-images.githubusercontent.com/87093158/225084403-8b17b280-1752-4aff-bba2-262f6f192e01.png)
+
+<img width="731" alt="Screen Shot 2023-03-14 at 1 12 10 PM" src="https://user-images.githubusercontent.com/87093158/225084823-be8382d6-c3f0-4eec-946e-660a70a3248d.png">
