@@ -51,7 +51,7 @@ using TickTock
 
 function integratePrior_estTFA(geneExprMat, priorFile, minTargets, edgeSS, outputFile)
 
-## load input gene expression
+## load files
 println("Loading in data")
 targGeneMat = load(geneExprMat, "targGeneMat")
 tfaGeneMat = load(geneExprMat, "tfaGeneMat")
@@ -63,18 +63,33 @@ totConds = size(targGeneMat)[2]
 
 println("Case 1")
 
+# Open prior file
 fid = open(priorFile)
 C = readdlm(fid,'\t','\n', skipstart=0)
+
+# Store first row (the TFs) in a vector pRegsTmp
 pRegsTmp = C[1,:]
+
+# If first entry is empty, remove it (depends on formatting)
 if pRegsTmp[1] == ""
     pRegsTmp = pRegsTmp[2:end]
 end
+
+# Convert the pRegsTmp vector to type string for speed purposes 
 pRegsTmp = convert(Vector{String}, pRegsTmp)
+
+# Store remaining prior matrix (minus column names) as a matrix
 C = C[2:end,:]
+
+# Sort prior gene vector alphebetically. Resort the matrix as well
 inds = sortperm(C[:,1])
 C = C[inds,:]
+
+# Store genes in prior matrix in vector pTargsTmp. Convert it to type String for speed
 pTargsTmp = C[:,1]
 pTargsTmp = convert(Vector{String}, pTargsTmp)
+
+# Store the matrix of sorted prior matrix counts. Convert it to Float
 pIntsTmp = C[:,2:end]
 pIntsTmp = convert(Matrix{Float64}, pIntsTmp)
 close(fid)
@@ -82,20 +97,31 @@ close(fid)
 
 
 ## Limit prior regulators and gene targets to those included in input data
+# load TF list
 potRegs = load(geneExprMat, "potRegs")
+# load genes used for TFA 
 tfaGenes = load(geneExprMat, "tfaGenes")
+
+# Find which prior TFs (columns) are in TF list
 pRegsIndsTmp = findall(in(potRegs), pRegsTmp)
+# Find which prior genes (rows) are in TFA genes
 pTargIndsTmp = findall(in(tfaGenes),pTargsTmp)
+# Find which TFs in our list are also in the prior
 pRegsNoTfa = intersect(pRegsTmp, potRegs)
+# Find which TFA genes are also in the prior
 pTargsNoTfa = intersect(pTargsTmp, tfaGenes)
 pTargsNoTfa = convert(Vector{String}, pTargsNoTfa)
 pRegsNoTfa = convert(Vector{String}, pRegsNoTfa)
+
+# Subset prior matrix to include only relavant TFs and genes. This matrix is missing the TFs
+# that were not in the prior
 priorMatrixNoTfa = pIntsTmp[pTargIndsTmp, pRegsIndsTmp]
 
-# output mRNA estimates for regulators without TFA
+# Find TFs that have expression data but arent in the prior 
 noPriorRegs = setdiff(potRegs_mRNA,pRegsNoTfa)
-#expInds = [x for x in potRegMat_mRNA if !(x in pRegsNoTfa)]
+# Get the row number of where the noPriorRegs occur in TF expression matrix
 expInds = findall(in(noPriorRegs), potRegs_mRNA)
+# Create matrix of gene expression for the TFs that wernt in prior 
 noPriorRegsMat = potRegMat_mRNA[expInds,:]
 
 println("Case 2")
@@ -143,8 +169,6 @@ if mergedTFsExist == 1
             pRegsTmp = pRegsTmp[2:length(pRegsTmp)]
         end
         totPRegs = length(pRegsTmp)        
-        close(fid)
-        # get the rest of the data using textscan
         fid = open(priorFile)
         C = readdlm(fid,'\t',skipstart=0)
         pTargsTmp = C[:,1]
@@ -158,12 +182,21 @@ end
 
 println("Enforce Rules on data")
 
-## now go through and enforce minimum number of targets
 ## Limit prior regulators and gene targets to those included in input data (.mat)
+# Prior regs are all the TFs in TF list AND in the prior
 pRegs = intersect(pRegsTmp,potRegs)
+# Prior targs are all the TFs in gene list AND in the prior
 pTargs = intersect(pTargsTmp,tfaGenes)
+
+# pTargsTmp are genes in the prior. Find which of these should are also in the
+# list of user inputted TFA genes (likely will be all). 
 pTargIndsTmp = findall(in(tfaGenes), pTargsTmp)
+# pRegIndsTmp are regs in prior. Find which ones are also in TF list
 pRegIndsTmp = findall(in(potRegs), pRegsTmp)
+
+# pInts is the subset prior matrix containing only TFs in potRegs and genes in TFA gene list
+# pInts is still missing all the potRegs that wernt in the prior. Will be identical to priorMatrixNoTFA
+# unless there were merged TFs 
 pInts = pIntsTmp[pTargIndsTmp,pRegIndsTmp]
 intsPerTf = sum((abs.(sign.(pInts))), dims=1)
 
@@ -182,8 +215,12 @@ pInts = pInts[keepTargs,:]
 pTargs = pTargs[keepTargs]
 
 # make sure that target indices in prior and expression matrix
-# coordinate
+# coordinate. To calculate TFA, need the same set of genes in expression
+# matrix and prior matrix
+
+# pTargs2 are the prior genes also in list of TFA genes. This step should be not necessary
 pTargs2 = intersect(pTargs,tfaGenes)
+# Get the proper index order so pTargs mataches tfaGenes
 pTargs2Inds = Tuple.(findall(in(tfaGenes), pTargs))
 pTargIndsTmp = first.(pTargs2Inds)
 expTargInds = Tuple.(findall(in(pTargs), tfaGenes))
@@ -193,6 +230,9 @@ priorMatrix = convert(Matrix{Float64}, priorMatrix)
 # get target gene matrix
 targExp = tfaGeneMat[expTargInds,:]
 targExp = convert(Matrix{Float64}, targExp)
+
+# priorMatrix and targExp now contain the same genes in the same order and can be 
+# used to calculate TFA
 
 println("Calculate TFA")
 ## calculate TFA, ( X = P * A, A = P \ X)
@@ -219,10 +259,10 @@ if edgeSS > 0
         tfas[ss,:,:] = sPrior \ targExp   
     end
     medTfas = zeros(totPreds,totConds)
-
     medTfas[:,:] = median(tfas, dims = 1)
     println("Median from  ", string(edgeSS), " subsamples used for prior-based TFA.")
 else
+    # Calculate TFA by dividing priorMatrix by targExp
     medTfas = priorMatrix \ targExp;
     println("No subsampling for prior-based TFA estimate.")
 end
@@ -230,7 +270,15 @@ end
 
 println("Save data")
 
+# pTargsNoTfa: TFA genes also in the prior
+# priorMatrixNoTFA: Prior matrix containing only TFA genes and potRegs. Missing potRegs not in prior
+# pRegsNoTfa: potRegs also in the prior
+# medTfas: TFA matrix. Missing potRegs not in prior
+# pRegs: All TFs that are in the prior
+# pTargs: All genes that are in the prior
+# priorMatrix: Final prior matrix with order (pTargs, pRegs)
+# noPriorRegs: potRegs not found in prior. Missing in current TFA matrix
+# noPriorRegsMat: Gene expression for the missing TFs
+
 @save outputFile pTargsNoTfa priorMatrixNoTfa pRegsNoTfa medTfas pRegs pTargs priorMatrix noPriorRegs noPriorRegsMat
-
-
 end

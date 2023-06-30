@@ -32,12 +32,12 @@ include("/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/julia_fxns/build
 
 #================== INPUTS ===================#
 
-saveID = "maxcombine" # name for output files
+saveID = "combined" # name for output files
 priorID = "combined_cut01" # prior file basename
 inputOptTFA = ""
 
 # Specify output directory
-dirOutput = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_network_combined_batch/" * saveID
+dirOutput = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/Barski_MEMT_Network_combined_Updated_2023-03-13/" * saveID
 
 try
     mkdir(dirOutput)
@@ -46,13 +46,14 @@ catch
 end
 
 # 1. Import gene expression data, list of regulators, list of target genes into a Matlab .jld object
-normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Network/Pseudobulk_RNA/batch_filtered_noDonor0.txt"
-targGeneFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk/genes_T_bulk_celltype_minFrac5.txt"
-potRegFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Network/Pseudobulk_RNA/potentialRegs/potential_regs_keep.txt"
+normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk_RNA/scrna_MEMT_counts_combatseq_vst_no_Donor0.txt"
+targGeneFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk_RNA/SigGenes2/celltype_log2FC0p58_FDR10/sig_genes.txt"
+potRegFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/GRN/pot_regs.txt"
 tfaGeneFile = ""
 geneExprMat = dirOutput * "/geneExprMat.jld"
 
-priorFile = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_network_combined_batch/combined/combined_cut01.tsv"
+priorFile = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/Barski_MEMT_Network_combined_050723/combined/combined_cut01.tsv"
+
 edgeSS = 0 # # of prior edge subsamples, if edgeSS = 0, all edges will be used to calculate TFA
 minTargets = 3;
 tfaMat= dirOutput * "/tfaMat.jld"

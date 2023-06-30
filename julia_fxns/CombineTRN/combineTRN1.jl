@@ -11,11 +11,11 @@ meanEdgesPerGene = 10
 combineOpt = "max"
 
 # Path to output
-combinedNetTsv = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_network_combined_batch/combined.tsv"
+combinedNetTsv = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/Barski_MEMT_Network_combined_050723/combined.tsv"
 
 # Paths to networks to combine, seperate with ;
-nets2combine = ["/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/Barski_MEMT_Network_TFmRNA_Batch/trnOutMat.jld";
-"/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/Barski_MEMT_Network_TFA_Batch/trnOutMat.jld"
+nets2combine = ["/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/Barski_MEMT_Network_TFmRNA_050723/trnOutMat.jld";
+"/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/Barski_MEMT_Network_TFA_050723/trnOutMat.jld"
 ]
 
 # Number of networks to combine

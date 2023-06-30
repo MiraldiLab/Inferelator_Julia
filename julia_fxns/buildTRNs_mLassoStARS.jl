@@ -1,4 +1,3 @@
-using PyPlot 
 using Statistics
 using CSV
 using DelimitedFiles
@@ -44,9 +43,6 @@ function buildTRNs_mLassoStARS(instabOutMat,tfaMat,priorMergedTfsFile,
 # instabSource -- source of instability estimates, two options:
 #   'Network'  --> for network-wide stability estimates
 #   'Gene' --> stability based on each gene model separately
-# subsampHistPdf -- a filename to be used for generating a histogram of
-#   nonzero edge subsample frequencies at the target instability cutoff.  
-#   NOTE: empty string '' signals not to create this output
 # trnOutMat -- name for output .mat containing ranks, partial correlation,
 #   etc., for downstream analysis (e.g., gene expression prediction)
 # outNetFileSparse -- name for tab-delimited network file in "sparse" format (i.e., 
@@ -66,7 +62,6 @@ function buildTRNs_mLassoStARS(instabOutMat,tfaMat,priorMergedTfsFile,
 #        1.  Edge thickness (in output sparse network) is proportional to 
 #              edge stability: 2*(.5-instability) E [0,1] 
 #        2.  Edges signs are calculated based on partial correlation
-# subsamHistPdf -- (optional) histogram as described above
 
 ssMatrix = load(instabOutMat, "ssMatrix")
 netInstabilities = load(instabOutMat, "netInstabilities")
@@ -83,32 +78,7 @@ ssOfInt = zeros(totNetGenes,totNetTfs)
 
 ## transform StARS instabilities into stabilities 
 if length(findall("Gene", instabSource)) > 0
-#     disp('Per-gene instabilities detected.')
-#     % have to find per-gene lambda corresponding to instability
-#     totMins = 0; % keep track of instabilities at min or max lambda (suggesting a wider lambda range is needed)
-#     totMaxes = 0;
-#     for targ = 1:totNetGenes
-#         currInstabs = geneInstabilities(targ,:);
-#         devs = abs(currInstabs - targInstability);
-#         globalMin = min(devs);
-#         minInds = find(devs == globalMin);
-#         % take the largest lambda that is closest to targInstability
-#         minInd = minInds(end);
-#         ssOfInt(targ,:) = ssMatrix(minInd,targ,:);
-#         if minInd == 1
-#             totMins = totMins + 1;
-#         elseif minInd == totLambdas
-#             totMaxes = totMaxes + 1;
-#         end
-#     end
-#     if totMins
-#         disp(['Target instability reached at minimum lambda for ' num2str(totMins) ' gene(s), cut = ' num2str(targInstability) '.'])
-#     elseif minInd == totLambdas
-#         disp(['Target instability reached at maximum lambda for ' num2str(totMins) ' gene(s), cut = ' num2str(targInstability) '.'])
-#     end   
-#     hist(ssOfInt(:),totSS+1)
-#     xlabel(['Subsamples at ' num2str(targInstability) '.'],'FontSize',14)
-#     ylabel('Counts','FontSize',14)
+
 elseif length(findall("Network", instabSource)) > 0
     println("Network instabilities detected.")
     # find the single lambda corresponding to the cutoff
@@ -136,20 +106,7 @@ ssOfInt = reshape(ssOfIntVec,totNetGenes,totNetTfs)
 
 
 
-
-# figure(1), clf
-ssIn = totSS*(.5+ sqrt(.25 .- targInstability/2)) # inst = 2 * p * (1-p), solve for p to get minimum # of nonzero subsamples for edge to be in network at the instability cutoff
-vals = hist(ssOfInt[:],0:totSS,range=ssIn*[1,1], ec="black")
-xlabel("Number of nonzero subsamples at instability " * string(targInstability) * ", " * instabSource)
-ylabel("Counts")
-yMax = vals[1][2] * 2 #(totSS/50)*1E5;
-axes = plt.gca()
-axes.set_ylim(0,yMax)
-
-
 # will want to calculate partial correlations further below
-zTfa = zscore(predictorMat')'
-zTargGeneMat = zscore(responseMat')'
 inPriorMat = sign.(abs.(priorMat))
 
 ## Rank edges based on stability at instability cutoff
@@ -164,12 +121,6 @@ keepInds = findall(x -> x != 0 && x != Inf, rankTmp) # keep nonzero, remove infi
 rankTmp2 = rankTmp[keepInds]
 inds = reverse(sortperm(rankTmp2))
 rankings = sort(rankTmp2,rev=true)
-#inds = Vector{Vector{Int}}(undef, 0)
-#for x in reverse(1:totSS)
-#    xx = Float64(x)
-#    push!(inds,findall(y -> y == xx, rankTmp2))
-#end
-#inds = reduce(vcat, inds)
 regs = regs0[keepInds[inds]]
 targs = targs0[keepInds[inds]]
 totInfInts = length(rankings)
@@ -244,8 +195,7 @@ end
 # save stabilities, targs and TFs before merging -- needed for
 # R^2_pred, LO analysis
 allStabsMergedTFs = allStabsTest
-#     targsMergedTFs = targs;
-#     regsMergedTFs = regs;
+
 
 mergeTfLocVec = zeros(totNetTfs,1) # for keeping track of merged TFs (needed for partial correlation calculation)
 
@@ -275,7 +225,6 @@ if priorMergedTfsFile != "" # there could be merged TFs
         rmInds = [rmInds; inputLocs];
         if length(inputLocs) > 0
             indTfs = intersect(permutedims(split(tmergeVals[mind],", ")),pRegsNoTfa); # intersect ensures that TF was a potential regulator (e.g., based on gene expression)
-            #println([mTf, " expanded to ", (indTfs * ", "), "."])
             totIndTfs = length(indTfs)
             for indt = 1:totIndTfs
                 indTf = indTfs[indt]
@@ -309,7 +258,7 @@ end
 ## re-rank based on possibly de-merged TFs
 rankings = allStabsTest[:]       
 coefVec = allCoefs[:]
-quantiles = allQuants[:]
+
 inPriorVec = inPriorMat[:]
 totNetTfs = length(allPredictors)
 totInts = totNetGenes * totNetTfs
@@ -325,38 +274,51 @@ indsMerged = reverse(indsMerged)
 # update info sources
 rankings = rankings[keepRankings[indsMerged]]
 coefVec = coefVec[keepRankings[indsMerged]]
-quantiles = quantiles[keepRankings[indsMerged]]
 inPriorVec = inPriorVec[keepRankings[indsMerged]]    
 regs = regs[keepRankings[indsMerged]]
 targs = targs[keepRankings[indsMerged]]
 totInfInts = length(rankings)
 
-absCoefVec = abs.(coefVec)
-keep = findall(x -> x > 0, absCoefVec)
-coefVecNz = absCoefVec[keep]
-allStabsTestVecNz = rankings[keep]
-
-## update quantile ranks to take into account instability + |partial correlation|
-# i.e., further refinement
-lastQuant = 1
-uniQuants = sort(unique(quantiles),rev=true)
-totQuants = length(uniQuants)
-quantilesRefined = zeros(size(quantiles))
-
-for qind = 1:totQuants
-    currQuant = uniQuants[qind]
-    currInds = findall(x -> x == currQuant, quantiles)
-    currStabs = rankings[currInds]
-    uniStabs = sort(unique(currStabs), rev=true)
-    totStabs = length(uniStabs)
-    for sind = 1:totStabs
-        sInds = findall(x -> x == uniStabs[sind],currStabs)
-        quantilesRefined[currInds[sInds]] .= currQuant + (1-(sind-1)/totStabs)*(lastQuant-currQuant)
-    end
-    lastQuant = currQuant
+totQuantEdges = length(unique(targs))*meanEdgesPerGene
+ranks4quant = rankings[1:totQuantEdges]
+quantiles = zeros(length(rankings),1)
+uniRanks = sort(setdiff(unique(ranks4quant),[0]),rev = true);
+totRanks = length(uniRanks)
+totVals = 0
+for rind = 1:totRanks
+    rankInds = findall(x -> x==uniRanks[rind], ranks4quant)
+    totVals = totVals + length(rankInds);
+    quantiles[rankInds] .= 1 - totVals/totQuantEdges;
 end
 
-networkMatrix = hcat(regs, targs, rankings)
+## Color calculations for JP-Gene-Viz 
+minRank = minimum(rankings)
+maxRank = maximum(rankings)
+rankRange = maxRank - minRank
+medBlue = [0, 85, 255]
+medRed = [228, 26, 28]
+lightGrey = [217, 217, 217]
+strokeWidth = zeros(length(rankings))
+strokeVals = Vector{String}()
+strokeDashArray = Vector{String}()
+signedQuantile = zeros(length(rankings))
+for ii in 1:length(rankings)
+    strokeWidth[ii] = 1 + (rankings[ii] - minRank) / rankRange
+    currPrho = abs(coefVec[ii])
+    color = currPrho * medRed + (1-currPrho)*lightGrey
+    colorString = "rgb(" * string(floor(Int, round(color[1]))) * "," * string(floor(Int, round(color[2]))) * "," * string(floor(Int, round(color[3]))) * ")"
+    push!(strokeVals, colorString)
+    signedQuantile[ii] = sign(coefVec[ii]) * quantiles[ii]
+    if inPriorVec[ii] == 1
+        push!(strokeDashArray, "None")
+    else
+        push!(strokeDashArray, "2,2")
+    end
+end
+
+networkMatrix = hcat(regs, targs, signedQuantile, rankings, coefVec, strokeVals, strokeWidth, strokeDashArray)
+networkMatrixSubset = hcat(regs[1:totQuantEdges], targs[1:totQuantEdges], signedQuantile[1:totQuantEdges], rankings[1:totQuantEdges], coefVec[1:totQuantEdges], strokeVals[1:totQuantEdges], strokeWidth[1:totQuantEdges], strokeDashArray[1:totQuantEdges])
+
 
 open(networkDir * "/targs.txt","w") do io 
     writedlm(io, targs)
@@ -370,8 +332,11 @@ end
 open(networkDir * "/edges.txt","w") do io
     writedlm(io, networkMatrix)
 end
+open(networkDir * "/edges_subset.txt","w") do io   
+    writedlm(io, networkMatrixSubset)
+end
 
-@save outMat predictorMat responseMat mergeTfLocVec allStabsTest allCoefs allQuants inPriorMat targGenes allPredictors allStabsMergedTFs regs targs rankings coefVec quantiles quantilesRefined inPriorVec instabSource
+@save outMat predictorMat responseMat mergeTfLocVec allStabsTest allCoefs allQuants inPriorMat targGenes allPredictors allStabsMergedTFs regs targs rankings coefVec quantiles inPriorVec instabSource
 
 
 end

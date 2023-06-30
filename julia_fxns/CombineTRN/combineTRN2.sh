@@ -1,7 +1,7 @@
 # script relies on prior-parssing code
 scriptHome="/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Scripts/INF_LS/priorConstruction"
 
-inputDir="/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_network_combined_batch"
+inputDir="/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/Barski_MEMT_Network_combined_050723"
 
 # list of networks to filter, expected to be in sparse format (w/ _sp.tsv extension), e.g., as from
 #       buildTRNs_mLassoStARS.m, i.e., (top rows of example output):

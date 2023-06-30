@@ -41,40 +41,61 @@ eps = 1E-10; # target genes whose standard deviation across all samples is
     # less than eps will be removed from the target gene matrix
 
 
-## input gene expression data
+# Open gene expression file
 currFile = normGeneExprFile;
-
-#get input data
 fid = open(currFile);
 C = readdlm(fid,'\t','\n', skipstart=0)
 close(fid);
+
+# Collect sample names (the first row of the expression matrix) 
 conditionsc = C[1,:]
+
+# Depending on formatting, first entry might be empty. If so, remove it in the conditions list
 if(conditionsc[1] == "")
   conditionsc = conditionsc[2:end]
 end
+totSamps = length(conditionsc)
+
+# convert conditions vector from type "any" to type "string" for speed reasons
 conditionsc = convert(Vector{String}, conditionsc)
-totSamps = length(conditionsc) 
+
+# Store the rest of the expression matrix minus the condition names
 C = C[2:end,:]
+
+# Sort the gene names alphebeticly and reorder expression matrix
 inds = sortperm(C[:,1])
 C = C[inds,:]
+
+# Collect sorted gene names, the first column. 
 genesc = C[:,1]
 genesc = convert(Vector{String}, genesc)
+
+# Store the actual expression counts in the ncounts variable. Store it as a float matrix
 ncounts = C[:,2:end]
 ncounts = convert(Matrix{Float64}, ncounts)
 ncountSize = size(ncounts)
-println("scanned")
+println("Expression Matrix Loaded")
 
-## load target genes, predictors, nominally expressed genes and get matrices for each
-## target genes
+## load target genes, predictors, nominally expressed genes
+# Load list of target genes
 fid = open(targGeneFile)
 C = readdlm(fid, String, skipstart=0)
 close(fid)
 targGenesTmp = C
+
+# Find which of the genes present in the expression matrix are target genes
 indsMat = findall(in(targGenesTmp), genesc)
+
+# Include only target genes that have expression data
 targGenes = genesc[indsMat]
+
+# Subset the target gene matrix to include only the new target genes
 targGeneMat = ncounts[indsMat,:]
-# make sure that genes actual show variation
+
+# Calculate standard deviation of each gene across samples
 stds = std(targGeneMat, dims=2)
+
+# Find which target genes dont meet minimum stdev cutoff and remove them
 Zstd = findall(stds -> stds < eps, stds)
 remove = targGenes[Zstd]
 if remove != []
@@ -93,18 +114,23 @@ if length(targGenesTmp) > length(targGenes)
 end
 
 ## import potential regulators and find mRNA expression levels, if available
+# Load TFs and store in potRegs
 fid = open(potRegFile)
 C = readdlm(fid,String, skipstart=0)
 close(fid)
 potRegs = C
 
-# get mRNA levels of potential regulators matrix
-xx = intersect(Set(genesc),Set(potRegs));
+# Find which expressed genes are in the TF list
 indsMat = findall(in(potRegs), genesc)
+
+# Vector of TFs that have expression data
 potRegs_mRNA = genesc[indsMat]
+
+# Expression matrix for TFs that have expression data
 potRegMat_mRNA = ncounts[indsMat,:]
 println(length(potRegs_mRNA), " potential regulators with expression data.")
 
+# Display TFs that have no expression data
 if length(potRegs) > length(potRegs_mRNA)
   miss = setdiff(potRegs,potRegs_mRNA);
   println("The following ", length(miss), " regulators have no expression data:")
@@ -123,10 +149,12 @@ else
     println("No TFA gene file found, all genes will be used to estimate TFA.")
     tfaGenesTmp = genesc;
 end
-# get TFA gene matrix
-xx = intersect(genesc,tfaGenesTmp);
+
+# Find which genes with expression data will be included for TFA
 indsMat = findall(in(tfaGenesTmp), genesc)
 tfaGenes = genesc[indsMat]
+
+# Get expression matrix for genes used for TFA calculation
 tfaGeneMat = ncounts[indsMat,:];
 
 @save outputFile conditionsc genesc potRegMat_mRNA potRegs potRegs_mRNA targGeneMat targGenes tfaGenes tfaGeneMat

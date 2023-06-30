@@ -101,20 +101,28 @@ medTfas = load(tfaMat, "medTfas")
 potRegs_mRNA = load(geneExprMat, "potRegs_mRNA")
 potRegMat_mRNA = load(geneExprMat, "potRegMat_mRNA")
 
-# have to match prior names with target gene expression and TFA
+### Create new prior matrix that contains only the relvant genes and TFs. 
+
+# if not using TFA, set pRegs, pTargs, and prior matrix to the correct form. The difference
+# is whether to use all TFs/targs in the prior or only the ones included in potRegs list. This
+# would be to avoid accidentally using TFs that we dont have expression data for
 if tfaOpt != ""
     println("noTfa option")
     pRegs = pRegsNoTfa;
     pTargs = pTargsNoTfa;
     priorMatrix = priorMatrixNoTfa;
 end
+# TFs in potRegs that have expression data that arent in prior. Get the index for these TFs 
+# in the TF expression matrix
 uniNoPriorRegs = setdiff(potRegs_mRNA, pRegs)
 uniNoPriorRegInds = findall(in(uniNoPriorRegs), potRegs_mRNA)
+
+# allPredictors include both the pRegs and the potRegs that wernt in prior
 allPredictors = vcat(pRegs, uniNoPriorRegs)
 totPreds = length(allPredictors)
 
-
-vals = intersect(targGenes,pTargs)
+# Create new prior matrix that contains target genes in the same order as targGenes. If using
+# TFA, missing TFs not in prior that we have expression data for
 targGeneInds = findall(in(pTargs), targGenes)
 priorGeneInds = findall(in(targGenes), pTargs)
 totTargGenes = length(targGenes)
@@ -122,8 +130,9 @@ totPRegs = length(pRegs)
 priorMat = zeros(totTargGenes,totPreds)
 priorMat[targGeneInds,1:totPRegs] = priorMatrix[priorGeneInds,:]
 
-## set input priors and predictors    
+# predictorMat will be TFA (when available) and TFmRNA when TFA not available    
 predictorMat = [medTfas; potRegMat_mRNA[uniNoPriorRegInds,:]]
+# If not using TFA, just set predictorMat to mRNA
 if tfaOpt != "" # use the mRNA levels of TFs
     currPredMat = zeros(totPreds,totSamps)
     for prend = 1:totPreds
@@ -134,7 +143,11 @@ if tfaOpt != "" # use the mRNA levels of TFs
     println("TF mRNA used.")
 end
 
+# priorWeight for a TF-Gene pair will be 1 if interaction not in prior and 1-lambdaBias if
+# interaction is in prior
 priorWeightsMat = ones(totTargGenes,totPreds) - (1-lambdaBias)*abs.(sign.(priorMat))
+
+
 
 if tfaOpt != ""
     ## set lambda penalty to infinity for positive feedback edges where TF 
@@ -181,16 +194,18 @@ println("Estimating lambda bounds for target instability with getMLassoStARSlamb
 bStarsTotSS = 5;  # note bStARS authors recommend 2 subsamples, we reduce search space 
 # further by using 5 subsamples at relatively small cost early on
 bStarsLogLambdaStep = 10;
+# Determine the lambda levels to test
 lamLog10step = 1/bStarsLogLambdaStep
 logLamRange =  log10(lambdaMin):lamLog10step:log10(lambdaMax)
 lambdaRange = 10 .^ (logLamRange)
 
+# Calculate bStARS lambda range
 minLambdas, maxLambdas, maxedOut, notSmallEnough, minLambdaNet, maxLambdaNet, maxOutNet, minOutNet, netInstabilitiesLb, netInstabilitiesUb,
     instabilitiesLb, instabilitiesUb = getMLassoStARSlambdaRangePerGene(predictorMat[:,trainInds],responseMat[:,trainInds],
     priorWeightsMat,lambdaRange,targetInstability,targetInstability,subsampleSize,bStarsTotSS)
 
-# extend lambda range for genes where lambda range was too small
-# note extension is limited to "extensionLimit" defined above
+# If target instability is never reached for certain genes, extend the lambda range and then
+# recalculate instabilities
 needNewRange = maxOutNet + minOutNet
 extended = 0
 while needNewRange >= extensionLimit && extended < extensionLimit
@@ -225,9 +240,30 @@ lamLog10step = 1/totLogLambdaSteps
 logLamRange =  log10(minLambdaNet):lamLog10step:log10(maxLambdaNet)
 lambdaRange = 10 .^ logLamRange
 
-geneInstabilities,netInstabilities,ssMatrix = getMLassoStARSinstabilitiesPerGeneAndNet(predictorMat,
-    responseMat,priorWeightsMat,lambdaRange,subsampleSize, totSS)
+# Calculate instabilities for new lambda range
 
-@save instabOutMat geneInstabilities netInstabilities ssMatrix predictorMat responseMat priorMat lambdaBias lambdaRange trainInds subsampleSize totSS targGenes priorWeightsMat allPredictors conditionsc    
+geneInstabilities,netInstabilities,ssMatrix = getMLassoStARSinstabilitiesPerGeneAndNet(predictorMat,responseMat,priorWeightsMat,lambdaRange,subsampleSize, totSS)
+
+# geneInstabilities: (Gene x Lambda) gene instabilitiy values for each lambda level
+# netInstabilities: total network instabilitiy at each lambda (vector)
+# ssMatrix: (lambda x gene x TF) subsample number of each TF-gene pair for each lambda
+# predictorMat: (Gene x TF) either TFA (+ missing TFmRNA) or just TFmRNA
+# responseMat: (Gene x Sample) target gene expression matrix
+# priorMat: (Gene x TF) prior matrix. First set of columns contain TFs that had prior info. Second 
+	# set contain TFs that arent in prior and are columns of zeros
+# lambdaBias: (Constant) peanlty for edge not being prior supported
+# lambdaRange: (Vector) lambda values from range determined by bStARS
+# trainInds: Samples used for training
+# subsampleSize: (Constant) number of pseudobulks to use in each subsample
+# totSS: (Constant) total number of subsamples
+# targGenes: (Vector) target genes
+# priorWeightsMat: (Gene x TF) Peanalties matrix
+# allPredictors: all potRegs with or without prior data
+# conditionsc: (vector) conditions list
+
+
+@save instabOutMat geneInstabilities netInstabilities ssMatrix predictorMat responseMat priorMat lambdaBias lambdaRange trainInds subsampleSize totSS targGenes priorWeightsMat allPredictors conditionsc
 
 end
+
+

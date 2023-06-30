@@ -1,4 +1,4 @@
-using Base: Float16
+#using Base: Float16
 ## example_workflow_Th17
 # Use mLASSO-StARS to build a TRN from gene expression and prior
 # information in four steps. Please refer to each function's help
@@ -27,7 +27,7 @@ include("../julia_fxns/estimateInstabilitiesTRNbStARS.jl")
 include("../julia_fxns/buildTRNs_mLassoStARS.jl")
 
 ## 1. Import gene expression data, list of regulators, list of target genes
-Network_Name = "Barski_MEMT_Network_TFA_Batch2"
+Network_Name = "Barski_MEMT_Network_2023-06-28_TFmRNA"
 #normGeneExprFile = "/data/miraldiNB/anthony/projects/Tfh10_downsampling/inputs/samples/full_vst_combat.tsv"
 #targGeneFile = "/data/miraldiNB/wayman/projects/Tfh10/outs/202204/GRN/inputs/target_genes/gene_targ_Tfh10_DESeq2_CellType_SigCellTypelog2FC1pct05_SigAgelog2FC0p5pct05.txt"
 #potRegFile = "/data/miraldiNB/wayman/projects/Tfh10/outs/202204/GRN/inputs/pot_regs/TF_scrna_Tfh10_bulk_CellType_All_minFrac5_vst_combat_SigCellTypeLog2FC1_SigAgeLog2FC0p25_ExpVST_TFA_50pctl.txt"
@@ -41,12 +41,12 @@ catch
     ##
 end
 
-normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Network/Pseudobulk_RNA/batch_filtered.txt"
-targGeneFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk/genes_T_bulk_celltype_minFrac5.txt"
+normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk_RNA/scrna_MEMT_counts_combatseq_vst_no_Donor0.txt"
+targGeneFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk_RNA/SigGenes2/celltype_log2FC0p58_FDR10/sig_genes.txt"
 potRegFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/GRN/pot_regs.txt"
 tfaGeneFile = ""
-priorName = "MEMT_FIMOp5_normF.tsv"
-priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Network/Prior/MEMT_FIMOp5_normF.tsv"
+priorName = "MEMT_050723_FIMOp5_normF.tsv"
+priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Prior/MEMT_050723_FIMOp5_normF.tsv"
 #priorName = "prior_T_v1_FIMOp5_normF"
 #priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Prior/prior_T_v1_FIMOp5_normF.tsv"
 
@@ -66,7 +66,7 @@ importGeneExpGeneLists(normGeneExprFile,targGeneFile,potRegFile,geneExprMat,tfaG
 tock()
 
 ## 2. Given a prior of TF-gene interactions, estimate transcription factor activities (TFAs) using prior-based TFA and TF mRNA levels
-edgeSS = 10
+edgeSS = 0
 minTargets = 3
 
 println("2. integratePrior_estTFA.jl")
@@ -78,7 +78,7 @@ tock()
 println("3. estimateInstabilitiesTRNbStARS.jl")
 
 lambdaBias = .5
-tfaOpt = "TFA" # options are "_TFmRNA" or ""
+tfaOpt = "_TFmRNA" # options are "_TFmRNA" or ""
 totSS = 100
 targetInstability = .05
 lambdaMin = .01
