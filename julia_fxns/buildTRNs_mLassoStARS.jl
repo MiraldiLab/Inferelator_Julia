@@ -3,7 +3,7 @@ using CSV
 using DelimitedFiles
 
 function buildTRNs_mLassoStARS(instabOutMat,tfaMat,priorMergedTfsFile,
-    meanEdgesPerGene,targInstability,instabSource,subsampHistPdf,trnOutMat,
+    meanEdgesPerGene,targInstability,instabSource,subsampHistPdf,trnOutMat,correlation_weight,
     outNetFileSparse, outMat, networkDir)
 ## buildTRNs_mLassoStARS(instabOutMat,tfaMat,meanEdgesPerGene,...
 #    targInstability,instabSource,plotSubSampHist,trnOutMat,...
@@ -189,7 +189,7 @@ for targ = 1:totUniTargs
     end   
     allQuants[targInd,regressIndsMat] = quantiles[targRankInds[rankVecInds]]
     #allStabsTest[targInd,regressIndsMat] = rankings[targRankInds[rankVecInds]] + round.(abs.(prho),digits = 2)
-    allStabsTest[targInd,regressIndsMat] = allStabsTest[targInd,regressIndsMat] + transpose(round.(abs.(prho),digits = 2))
+    allStabsTest[targInd,regressIndsMat] = allStabsTest[targInd,regressIndsMat] + (correlation_weight .* transpose(round.(abs.(prho),digits = 4)))
 end
 
 # save stabilities, targs and TFs before merging -- needed for
