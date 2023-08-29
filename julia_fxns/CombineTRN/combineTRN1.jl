@@ -11,11 +11,11 @@ meanEdgesPerGene = 10
 combineOpt = "max"
 
 # Path to output
-combinedNetTsv = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/Anthony_Network_Combined/combined.tsv"
+combinedNetTsv = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_combined_082923/combined.tsv"
 
 # Paths to networks to combine, seperate with ;
-nets2combine = ["/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/Th17_50ss_TFA_lambda50_cor1/trnOutMat.jld";
-"/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/Th17_50ss_TFA_lambda50_cor2/trnOutMat.jld"
+nets2combine = ["/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_TFA_082923/trnOutMat.jld";
+"/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_TFmRNA_082923/trnOutMat.jld"
 ]
 
 # Number of networks to combine
@@ -31,6 +31,10 @@ EdgesByNetwork = [];
 for nind = 1:totNets
     targs = load(nets2combine[nind], "targs")
     regs = load(nets2combine[nind], "regs")
+    networkCorrelations = load(nets2combine[nind], "coefVec")
+    keep = findall(x -> x != 0, networkCorrelations)
+    targs = targs[keep]
+    regs = regs[keep]
     totNetworkEdges = length(regs)
     networkEdges = Vector{String}(undef, totNetworkEdges)
     for ii = 1:totNetworkEdges
@@ -56,6 +60,10 @@ if combineOpt == "max"
         networkCorrelations = load(nets2combine[nind], "coefVec")
         netoworkCorrelations = round.(networkCorrelations, digits = 3)
         inPriorVec = load(nets2combine[nind], "inPriorVec")
+	keep = findall(x -> x != 0, networkCorrelations)
+        rankings = rankings[keep]
+        networkCorrelations = networkCorrelations[keep]
+        inPriorVec = inPriorVec[keep]
         networkEdges = EdgesByNetwork[nind];
         #allEdgesIndex = findall(in(networkEdges), allEdges)
 	allEdgesIndex = indexin(networkEdges, allEdges)

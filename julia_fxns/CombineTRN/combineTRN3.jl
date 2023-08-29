@@ -37,7 +37,7 @@ priorID = "combined_cut01" # prior file basename
 inputOptTFA = ""
 
 # Specify output directory
-dirOutput = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/Anthony_Network_Combined" * saveID
+dirOutput = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_combined_082923/" * saveID
 
 try
     mkdir(dirOutput)
@@ -46,13 +46,13 @@ catch
 end
 
 # 1. Import gene expression data, list of regulators, list of target genes into a Matlab .jld object
-normGeneExprFile = "/data/miraldiNB/anthony/projects/HAE/analysis/221027_pseudobulk_scrna_major/scrna_IFN_bulk_major_group_combat.txt"
-targGeneFile = "/data/miraldiNB/anthony/projects/HAE/analysis/220930_scrna_ifn_pseudobulk_combined_minor/pottargs.txt"
-potRegFile = "/data/miraldiNB/anthony/projects/HAE/analysis/220930_scrna_ifn_pseudobulk_combined_minor/potregs.txt"
+normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk_RNA/scrna_MEMT_counts_combatseq_vst_no_Donor0.txt"
+targGeneFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk_RNA/SigGenes2/celltype_log2FC0p58_FDR10/sig_genes.txt"
+potRegFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/GRN/pot_regs.txt"
 tfaGeneFile = ""
 geneExprMat = dirOutput * "/geneExprMat.jld"
 
-priorFile = "/data/miraldiNB/anthony/inferelator/infTRN_lassoStARS-master/outputs/221108/combat/221108_IFN_combat_max_combine/combined_prior_TRN_TFA_TFmRNA_bias50_max_10/combined_prior_TRN_TFA_TFmRNA_bias50_max_10_cut01.tsv"
+priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Prior/MEMT_050723_FIMOp5_normF.tsv"
 
 edgeSS = 0 # # of prior edge subsamples, if edgeSS = 0, all edges will be used to calculate TFA
 minTargets = 3;
