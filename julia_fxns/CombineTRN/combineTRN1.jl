@@ -14,8 +14,8 @@ combineOpt = "max"
 combinedNetTsv = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/Anthony_Network_Combined/combined.tsv"
 
 # Paths to networks to combine, seperate with ;
-nets2combine = ["/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/Anthony_Network_TFA/trnOutMat.jld";
-"/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/Anthony_Network_TFmRNA/trnOutMat.jld"
+nets2combine = ["/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/Th17_50ss_TFA_lambda50_cor1/trnOutMat.jld";
+"/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/Th17_50ss_TFA_lambda50_cor2/trnOutMat.jld"
 ]
 
 # Number of networks to combine
@@ -31,7 +31,7 @@ EdgesByNetwork = [];
 for nind = 1:totNets
     targs = load(nets2combine[nind], "targs")
     regs = load(nets2combine[nind], "regs")
-    totNetworkEdges = length(regs);
+    totNetworkEdges = length(regs)
     networkEdges = Vector{String}(undef, totNetworkEdges)
     for ii = 1:totNetworkEdges
         networkEdges[ii] = regs[ii] * "," * targs[ii];
@@ -54,6 +54,7 @@ if combineOpt == "max"
     for nind = 1:totNets
         rankings = load(nets2combine[nind], "rankings")
         networkCorrelations = load(nets2combine[nind], "coefVec")
+        netoworkCorrelations = round.(networkCorrelations, digits = 3)
         inPriorVec = load(nets2combine[nind], "inPriorVec")
         networkEdges = EdgesByNetwork[nind];
         #allEdgesIndex = findall(in(networkEdges), allEdges)
@@ -87,6 +88,7 @@ if combineOpt == "max"
             rankInds = findall(x->x==uniRankings[rind], rankings[networkEdgesIndex]);
             totVals = totVals + length(rankInds);
             totQuantVec[allEdgesIndex[rankInds]] = max.(totQuantVec[allEdgesIndex[rankInds]],1-totVals/totEdges); # quantile in terms of totInfInts
+            println(rind)
         end
     end
 elseif combineOpt == "mean"
@@ -165,8 +167,33 @@ outTargs = outTargs[1:totQuantEdges]
 outSignedQuantile = sign.(allCorrelations[1:totQuantEdges]) .* combQuantiles[1:totQuantEdges]
 outRankings = allRankingsVec[1:totQuantEdges]
 outCorrelations = allCorrelations[1:totQuantEdges]
+outInPriorVec = allInPriorVec[1:totQuantEdges]
 
-outMatrix = hcat(outRegs, outTargs, outSignedQuantile, outRankings, outCorrelations)
+minRank = minimum(outRankings)
+maxRank = maximum(outRankings)
+rankRange = maxRank - minRank
+medBlue = [0, 85, 255]
+medRed = [228, 26, 28]
+lightGrey = [217, 217, 217]
+strokeWidth = zeros(length(outRankings))
+strokeVals = Vector{String}()
+strokeDashArray = Vector{String}()
+signedQuantile = zeros(length(outRankings))
+for ii in 1:length(outRankings)
+    strokeWidth[ii] = 1 + (outRankings[ii] - minRank) / rankRange
+    currPrho = abs(outCorrelations[ii])
+    color = currPrho * medRed + (1-currPrho)*lightGrey
+    colorString = "rgb(" * string(floor(Int, round(color[1]))) * "," * string(floor(Int, round(color[2]))) * "," * string(floor(Int, round(color[3]))) * ")"
+    push!(strokeVals, colorString)
+    if outInPriorVec[ii] != 0
+        push!(strokeDashArray, "None")
+    else
+        push!(strokeDashArray, "2,2")
+    end
+end
+
+
+outMatrix = hcat(outRegs, outTargs, outSignedQuantile, outRankings, outCorrelations, strokeVals, strokeWidth, strokeDashArray)
 pcut = 0.01
 keep = findall(x->abs(x)>pcut, outMatrix[:,5])
 outMatrix = outMatrix[keep,:]

@@ -27,28 +27,33 @@ include("../julia_fxns/estimateInstabilitiesTRNbStARS.jl")
 include("../julia_fxns/buildTRNs_mLassoStARS.jl")
 
 ## 1. Import gene expression data, list of regulators, list of target genes
-Network_Name = "Th17_50ss_TFA_lambda50_cor10"
-normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Scripts/INF_LS/Th17_example/inputs/geneExpression/th17_RNAseq254_DESeq2_VSDcounts.txt"
-targGeneFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Scripts/INF_LS/Th17_example/inputs/targRegLists/targetGenes_names.txt"
-potRegFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Scripts/INF_LS/Th17_example/inputs/targRegLists/potRegs_names.txt"
-tfaGeneFile = ""
+Network_Name = "MEMT_TFA_082923"
+#normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Scripts/INF_LS/Th17_example/inputs/geneExpression/th17_RNAseq254_DESeq2_VSDcounts.txt"
+#targGeneFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Scripts/INF_LS/Th17_example/inputs/targRegLists/targetGenes_names.txt"
+#potRegFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Scripts/INF_LS/Th17_example/inputs/targRegLists/potRegs_names.txt"
+#tfaGeneFile = ""
 instabilitiesDir = "../outputs/" * Network_Name 
-priorName = "ATAC_Th17"
-priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Scripts/INF_LS/Th17_example/inputs/priors/ATAC_Th17.tsv"
+#priorName = "ATAC_Th17"
+#priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Scripts/INF_LS/Th17_example/inputs/priors/ATAC_Th17.tsv"
+#try
+#    mkdir(instabilitiesDir)
+#catch
+#    ##
+#end
+
+normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk_RNA/scrna_MEMT_counts_combatseq_vst_no_Donor0.txt"
+targGeneFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk_RNA/SigGenes2/celltype_log2FC0p58_FDR10/sig_genes.txt"
+potRegFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/GRN/pot_regs.txt"
+tfaGeneFile = ""
+priorName = "MEMT_050723_FIMOp5_normF.tsv"
+priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Prior/MEMT_050723_FIMOp5_normF.tsv"
+priorName = "prior_T_v1_FIMOp5_normF"
+priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Prior/prior_T_v1_FIMOp5_normF.tsv"
 try
     mkdir(instabilitiesDir)
 catch
     ##
 end
-
-#normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk_RNA/scrna_MEMT_counts_combatseq_vst_no_Donor0.txt"
-#targGeneFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk_RNA/SigGenes2/celltype_log2FC0p58_FDR10/sig_genes.txt"
-#potRegFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/GRN/pot_regs.txt"
-#tfaGeneFile = ""
-#priorName = "MEMT_050723_FIMOp5_normF.tsv"
-#priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Prior/MEMT_050723_FIMOp5_normF.tsv"
-#priorName = "prior_T_v1_FIMOp5_normF"
-#priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Prior/prior_T_v1_FIMOp5_normF.tsv"
 
 
 
@@ -79,7 +84,7 @@ println("3. estimateInstabilitiesTRNbStARS.jl")
 
 lambdaBias = .5
 tfaOpt = "" # options are "" or ""
-totSS = 50
+totSS = 100
 targetInstability = .05
 lambdaMin = .01
 lambdaMax = 1
@@ -89,7 +94,7 @@ bStarsTotSS = 5
 subsampleFrac = 0.63
 leaveOutSampleList = ""
 leaveOutInf = ""
-correlation_weight = 10
+correlation_weight = 1
 
 netSummary = priorName * "_bias" * string(100*lambdaBias) * tfaOpt
 instabOutMat = instabilitiesDir * "/instabOutMat.jl"
