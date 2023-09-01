@@ -11,7 +11,12 @@ meanEdgesPerGene = 10
 combineOpt = "max"
 
 # Path to output
-combinedNetTsv = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_combined_082923/combined.tsv"
+combinedNetDir = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_combined_082923"
+try
+    mkdir(combinedNetDir)
+catch
+    ##
+end
 
 # Paths to networks to combine, seperate with ;
 nets2combine = ["/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_TFA_082923/trnOutMat.jld";
@@ -205,7 +210,7 @@ outMatrix = hcat(outRegs, outTargs, outSignedQuantile, outRankings, outCorrelati
 pcut = 0.01
 keep = findall(x->abs(x)>pcut, outMatrix[:,5])
 outMatrix = outMatrix[keep,:]
-open(combinedNetTsv, "w") do io
+open((combinedNetDir * "/combined.tsv"), "w") do io
     write(io, colNames)
     writedlm(io, outMatrix)
 end
