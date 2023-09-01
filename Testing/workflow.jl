@@ -27,7 +27,7 @@ include("../julia_fxns/estimateInstabilitiesTRNbStARS.jl")
 include("../julia_fxns/buildTRNs_mLassoStARS.jl")
 
 ## 1. Import gene expression data, list of regulators, list of target genes
-Network_Name = "MEMT_TFA_082923"
+Network_Name = "MEMT_Testrun"
 #normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Scripts/INF_LS/Th17_example/inputs/geneExpression/th17_RNAseq254_DESeq2_VSDcounts.txt"
 #targGeneFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Scripts/INF_LS/Th17_example/inputs/targRegLists/targetGenes_names.txt"
 #potRegFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Scripts/INF_LS/Th17_example/inputs/targRegLists/potRegs_names.txt"
@@ -84,7 +84,7 @@ println("3. estimateInstabilitiesTRNbStARS.jl")
 
 lambdaBias = .5
 tfaOpt = "" # options are "" or ""
-totSS = 100
+totSS = 10
 targetInstability = .05
 lambdaMin = .01
 lambdaMax = 1

@@ -52,7 +52,7 @@ potRegFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/GRN/pot_re
 tfaGeneFile = ""
 geneExprMat = dirOutput * "/geneExprMat.jld"
 
-priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Prior/MEMT_050723_FIMOp5_normF.tsv"
+priorFile = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_combined_082923/combined/combined_cut01.tsv"
 
 edgeSS = 0 # # of prior edge subsamples, if edgeSS = 0, all edges will be used to calculate TFA
 minTargets = 3;

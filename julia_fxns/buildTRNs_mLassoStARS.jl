@@ -319,6 +319,7 @@ end
 networkMatrix = hcat(regs, targs, signedQuantile, rankings, coefVec, strokeVals, strokeWidth, strokeDashArray)
 networkMatrixSubset = hcat(regs[1:totQuantEdges], targs[1:totQuantEdges], signedQuantile[1:totQuantEdges], rankings[1:totQuantEdges], coefVec[1:totQuantEdges], strokeVals[1:totQuantEdges], strokeWidth[1:totQuantEdges], strokeDashArray[1:totQuantEdges])
 
+colNames = "TF\tGene\tsignedQuantile\tStability\tCorrelation\tstrokeVals\tstrokeWidth\tstrokeDashArray\n"
 
 open(networkDir * "/targs.txt","w") do io 
     writedlm(io, targs)
@@ -330,9 +331,11 @@ open(networkDir * "/rankings.txt","w") do io
     writedlm(io, rankings)
 end
 open(networkDir * "/edges.txt","w") do io
+    write(io, colNames)
     writedlm(io, networkMatrix)
 end
 open(networkDir * "/edges_subset.txt","w") do io   
+    write(io, colNames)
     writedlm(io, networkMatrixSubset)
 end
 

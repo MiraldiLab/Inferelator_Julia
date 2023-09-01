@@ -200,11 +200,12 @@ for ii in 1:length(outRankings)
     end
 end
 
-
+colNames = "TF\tGene\tsignedQuantile\tStability\tCorrelation\tstrokeVals\tstrokeWidth\tstrokeDashArray\n"
 outMatrix = hcat(outRegs, outTargs, outSignedQuantile, outRankings, outCorrelations, strokeVals, strokeWidth, strokeDashArray)
 pcut = 0.01
 keep = findall(x->abs(x)>pcut, outMatrix[:,5])
 outMatrix = outMatrix[keep,:]
 open(combinedNetTsv, "w") do io
+    write(io, colNames)
     writedlm(io, outMatrix)
 end
