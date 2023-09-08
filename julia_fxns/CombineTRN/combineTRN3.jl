@@ -37,7 +37,7 @@ priorID = "combined_cut01" # prior file basename
 inputOptTFA = ""
 
 # Specify output directory
-dirOutput = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_combined_082923/" * saveID
+dirOutput = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_combined_090223/" * saveID
 
 try
     mkdir(dirOutput)
@@ -46,13 +46,13 @@ catch
 end
 
 # 1. Import gene expression data, list of regulators, list of target genes into a Matlab .jld object
-normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk_RNA/scrna_MEMT_counts_combatseq_vst_no_Donor0.txt"
+normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Pseudobulk/RNA/scrna_MEMT_combatseq_filtered_vst.txt"
 targGeneFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk_RNA/SigGenes2/celltype_log2FC0p58_FDR10/sig_genes.txt"
 potRegFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/GRN/pot_regs.txt"
 tfaGeneFile = ""
 geneExprMat = dirOutput * "/geneExprMat.jld"
 
-priorFile = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_combined_082923/combined/combined_cut01.tsv"
+priorFile = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_combined_090223/combined/combined_cut01.tsv"
 
 edgeSS = 0 # # of prior edge subsamples, if edgeSS = 0, all edges will be used to calculate TFA
 minTargets = 3;

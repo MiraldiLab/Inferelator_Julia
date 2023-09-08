@@ -27,7 +27,7 @@ include("../julia_fxns/estimateInstabilitiesTRNbStARS.jl")
 include("../julia_fxns/buildTRNs_mLassoStARS.jl")
 
 ## 1. Import gene expression data, list of regulators, list of target genes
-Network_Name = "MEMT_Testrun"
+Network_Name = "MEMT_TFmRNA_090223"
 #normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Scripts/INF_LS/Th17_example/inputs/geneExpression/th17_RNAseq254_DESeq2_VSDcounts.txt"
 #targGeneFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Scripts/INF_LS/Th17_example/inputs/targRegLists/targetGenes_names.txt"
 #potRegFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Scripts/INF_LS/Th17_example/inputs/targRegLists/potRegs_names.txt"
@@ -41,14 +41,14 @@ instabilitiesDir = "../outputs/" * Network_Name
 #    ##
 #end
 
-normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk_RNA/scrna_MEMT_counts_combatseq_vst_no_Donor0.txt"
+normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Pseudobulk/RNA/scrna_MEMT_combatseq_filtered_vst.txt"
 targGeneFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk_RNA/SigGenes2/celltype_log2FC0p58_FDR10/sig_genes.txt"
 potRegFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/GRN/pot_regs.txt"
 tfaGeneFile = ""
 priorName = "MEMT_050723_FIMOp5_normF.tsv"
 priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Prior/MEMT_050723_FIMOp5_normF.tsv"
-priorName = "prior_T_v1_FIMOp5_normF"
-priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Prior/prior_T_v1_FIMOp5_normF.tsv"
+#priorName = "prior_T_v1_FIMOp5_normF"
+#priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Prior/prior_T_v1_FIMOp5_normF.tsv"
 try
     mkdir(instabilitiesDir)
 catch
@@ -83,18 +83,18 @@ tock()
 println("3. estimateInstabilitiesTRNbStARS.jl")
 
 lambdaBias = .5
-tfaOpt = "" # options are "" or ""
-totSS = 10
+tfaOpt = "_TFmRNA" # options are "" or ""
+totSS = 100
 targetInstability = .05
 lambdaMin = .01
 lambdaMax = 1
 extensionLimit = 1
 totLogLambdaSteps = 10 # will have this many steps per log10 within bStARS lambda range
 bStarsTotSS = 5
-subsampleFrac = 0.63
+subsampleFrac = 0.75
 leaveOutSampleList = ""
 leaveOutInf = ""
-correlation_weight = 1
+correlation_weight = 2
 
 netSummary = priorName * "_bias" * string(100*lambdaBias) * tfaOpt
 instabOutMat = instabilitiesDir * "/instabOutMat.jl"

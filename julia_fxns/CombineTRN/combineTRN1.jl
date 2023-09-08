@@ -5,13 +5,13 @@ using JLD2
 using PyCall
 
 # MeanEdgesPerGene
-meanEdgesPerGene = 10
+meanEdgesPerGene = 15
 
 # Combine option ("max" or "mean")
 combineOpt = "max"
 
 # Path to output
-combinedNetDir = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_combined_082923"
+combinedNetDir = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_combined_090223"
 try
     mkdir(combinedNetDir)
 catch
@@ -19,8 +19,8 @@ catch
 end
 
 # Paths to networks to combine, seperate with ;
-nets2combine = ["/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_TFA_082923/trnOutMat.jld";
-"/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_TFmRNA_082923/trnOutMat.jld"
+nets2combine = ["/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_TFA_090223/trnOutMat.jld";
+"/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_TFmRNA_090223/trnOutMat.jld"
 ]
 
 # Number of networks to combine
