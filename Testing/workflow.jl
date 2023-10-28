@@ -27,7 +27,7 @@ include("../julia_fxns/estimateInstabilitiesTRNbStARS.jl")
 include("../julia_fxns/buildTRNs_mLassoStARS.jl")
 
 ## 1. Import gene expression data, list of regulators, list of target genes
-Network_Name = "MEMT_TFmRNA_090223"
+Network_Name = "MEMT_TFA_100423"
 #normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Scripts/INF_LS/Th17_example/inputs/geneExpression/th17_RNAseq254_DESeq2_VSDcounts.txt"
 #targGeneFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Scripts/INF_LS/Th17_example/inputs/targRegLists/targetGenes_names.txt"
 #potRegFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Scripts/INF_LS/Th17_example/inputs/targRegLists/potRegs_names.txt"
@@ -47,8 +47,8 @@ potRegFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/GRN/pot_re
 tfaGeneFile = ""
 priorName = "MEMT_050723_FIMOp5_normF.tsv"
 priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Prior/MEMT_050723_FIMOp5_normF.tsv"
-#priorName = "prior_T_v1_FIMOp5_normF"
-#priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Prior/prior_T_v1_FIMOp5_normF.tsv"
+#priorName = "prior_MaxATAC"
+#priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Prior_MaxATAC/MaxATAC_Combined_q.tsv"
 try
     mkdir(instabilitiesDir)
 catch
@@ -83,7 +83,7 @@ tock()
 println("3. estimateInstabilitiesTRNbStARS.jl")
 
 lambdaBias = .5
-tfaOpt = "_TFmRNA" # options are "" or ""
+tfaOpt = "" # options are "" or ""
 totSS = 100
 targetInstability = .05
 lambdaMin = .01
@@ -91,10 +91,10 @@ lambdaMax = 1
 extensionLimit = 1
 totLogLambdaSteps = 10 # will have this many steps per log10 within bStARS lambda range
 bStarsTotSS = 5
-subsampleFrac = 0.75
+subsampleFrac = 0.63
 leaveOutSampleList = ""
 leaveOutInf = ""
-correlation_weight = 2
+correlation_weight = 1
 
 netSummary = priorName * "_bias" * string(100*lambdaBias) * tfaOpt
 instabOutMat = instabilitiesDir * "/instabOutMat.jl"

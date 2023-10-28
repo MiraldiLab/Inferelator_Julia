@@ -24,8 +24,8 @@ tfaGeneFile = ""
 priorName = "MEMT_050723_FIMOp5_normF.tsv"
 #priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/TRAC_loop/Prior/TracPrior_FIMOp5_b.tsv"
 #priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Prior/MEMT_050723_FIMOp5_normF.tsv"
-priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/TRAC_loop/Prior/prior_sum_f.tsv"
-Network_Name = "Barski_MEMT_Network_TFA_TEM_leaveout_combined_Lambda50_Corr5_samFrac80_75ss"
+priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Prior_MaxATAC/MaxATAC_Combined_b.tsv"
+Network_Name = "MaxATAC_R2_Predict"
 instabilitiesDir = "../outputs/" * Network_Name 
 try
     mkdir(instabilitiesDir)
@@ -60,15 +60,15 @@ loInfo = [["/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Pseudobulk/R
 totLos = size(loInfo,1)
 
 lambdaBias = .5
-totSS = 75
+totSS = 50
 targetInstability = .05
 lambdaMin = .01
 lambdaMax = 1
 extensionLimit = 1
 totLogLambdaSteps = 10 # will have this many steps per log10 within bStARS lambda range
 bStarsTotSS = 5
-subsampleFrac = 0.8
-correlation_weight = 5
+subsampleFrac = 0.63
+correlation_weight = 1
 
 for lind in 1:totLos
     leaveOutSampleList = loInfo[lind][1]

@@ -5,13 +5,13 @@ using JLD2
 using PyCall
 
 # MeanEdgesPerGene
-meanEdgesPerGene = 15
+meanEdgesPerGene = 10
 
 # Combine option ("max" or "mean")
 combineOpt = "max"
 
 # Path to output
-combinedNetDir = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_combined_090223"
+combinedNetDir = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_TFA_100423_combined"
 try
     mkdir(combinedNetDir)
 catch
@@ -19,8 +19,8 @@ catch
 end
 
 # Paths to networks to combine, seperate with ;
-nets2combine = ["/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_TFA_090223/trnOutMat.jld";
-"/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_TFmRNA_090223/trnOutMat.jld"
+nets2combine = ["/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_TFA_100423/trnOutMat.jld";
+"/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_TFmRNA_100423/trnOutMat.jld"
 ]
 
 # Number of networks to combine
@@ -150,7 +150,7 @@ if totEdges > totQuantEdges
 else
     ranks4quant = zeros(totQuantEdges);
     ranks4quant[1:totEdges] = totQuantVecSorted;
-    println("Total networks edges (" * string(totInfInts) * ") < meanEdgesPerGene (" * string(meanEdgesPerGene) * ", " * string(totQuantEdges) * ").") 
+    #println("Total networks edges (" * string(totInfInts) * ") < meanEdgesPerGene (" * string(meanEdgesPerGene) * ", " * string(totQuantEdges) * ").") 
 end
 
 uniRanks = setdiff(unique(ranks4quant))
