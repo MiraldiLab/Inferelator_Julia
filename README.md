@@ -6,7 +6,7 @@ Miraldi et al., Leveraging chromatin accessibility for transcriptional regulator
 
 The main workflow is found here: \
 [workflow.jl](https://github.com/MiraldiLab/Inferelator_Julia/blob/main/Testing/workflow.jl) \
-This workflow can benefit from parralellization, with significant speedups from using multiple cores. The workflow can be run on the BMI cluster with n cores using the bat file: \
+This workflow can benefit from parallelization, with significant speedups from using multiple cores. The workflow can be run on the BMI cluster with n cores using the bat file: \
 [workflow.bat](https://github.com/MiraldiLab/Inferelator_Julia/blob/main/Testing/workflow.bat) \
 
 
