@@ -4,25 +4,13 @@ using DelimitedFiles
 using JLD2
 using PyCall
 
-# MeanEdgesPerGene
-meanEdgesPerGene = 10
 
-# Combine option ("max" or "mean")
-combineOpt = "max"
-
-# Path to output
-combinedNetDir = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_TFA_100423_combined"
+function combineGRNs(meadEdgesPerGene, combineOpt, combinedNetDir, nets2combine)
 try
     mkdir(combinedNetDir)
 catch
     ##
 end
-
-# Paths to networks to combine, seperate with ;
-nets2combine = ["/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_TFA_100423/trnOutMat.jld";
-"/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/MEMT_TFmRNA_100423/trnOutMat.jld"
-]
-
 # Number of networks to combine
 totNets = length(nets2combine)
 
@@ -30,7 +18,6 @@ totNets = length(nets2combine)
 allEdges = [];
 allRegs = [];
 allTargs = [];
-
 EdgesByNetwork = [];
 
 for nind = 1:totNets
@@ -45,9 +32,9 @@ for nind = 1:totNets
     for ii = 1:totNetworkEdges
         networkEdges[ii] = regs[ii] * "," * targs[ii];
     end    
-    global allEdges = union(allEdges,networkEdges);
-    global allRegs = union(allRegs,regs);
-    global allTargs = union(allTargs,targs);
+    allEdges = union(allEdges,networkEdges);
+    allRegs = union(allRegs,regs);
+    allTargs = union(allTargs,targs);
     push!(EdgesByNetwork, networkEdges)
 end
 
@@ -65,18 +52,18 @@ if combineOpt == "max"
         networkCorrelations = load(nets2combine[nind], "coefVec")
         netoworkCorrelations = round.(networkCorrelations, digits = 3)
         inPriorVec = load(nets2combine[nind], "inPriorVec")
-	keep = findall(x -> x != 0, networkCorrelations)
+	    keep = findall(x -> x != 0, networkCorrelations)
         rankings = rankings[keep]
         networkCorrelations = networkCorrelations[keep]
         inPriorVec = inPriorVec[keep]
         networkEdges = EdgesByNetwork[nind];
         #allEdgesIndex = findall(in(networkEdges), allEdges)
-	allEdgesIndex = indexin(networkEdges, allEdges)
-	allEdgesIndex = sort(allEdgesIndex)
+	    allEdgesIndex = indexin(networkEdges, allEdges)
+	    allEdgesIndex = sort(allEdgesIndex)
         #networkEdgesIndex = findall(in(allEdges), networkEdges)
-	networkEdgesIndex = indexin(allEdges, networkEdges)
-	keep = findall(x->x!=nothing, networkEdgesIndex)
-	networkEdgesIndex = networkEdgesIndex[keep]
+        networkEdgesIndex = indexin(allEdges, networkEdges)
+        keep = findall(x->x!=nothing, networkEdgesIndex)
+        networkEdgesIndex = networkEdgesIndex[keep]
         allRankingsVec[allEdgesIndex] = max.(allRankingsVec[allEdgesIndex],rankings[networkEdgesIndex]); # take the max
         # take most extreme partial correlation with caution (to preserve sign change)
         oldNewCorrelations = [allCorrelations[allEdgesIndex] networkCorrelations[networkEdgesIndex]];
@@ -101,7 +88,6 @@ if combineOpt == "max"
             rankInds = findall(x->x==uniRankings[rind], rankings[networkEdgesIndex]);
             totVals = totVals + length(rankInds);
             totQuantVec[allEdgesIndex[rankInds]] = max.(totQuantVec[allEdgesIndex[rankInds]],1-totVals/totEdges); # quantile in terms of totInfInts
-            println(rind)
         end
     end
 elseif combineOpt == "mean"
@@ -135,8 +121,6 @@ else
     println("combineOpt must be either 'mean' or 'max'.")
 end
 
-
-
 ## 2. Take top meanEdgesPerGene and recalculate quantiles
 totQuantVec = vec(totQuantVec)
 totQuantVecSorted = sort(totQuantVec, rev = true)
@@ -159,7 +143,7 @@ totRanks = length(uniRanks);
 totVals = 0;
 for rind = 1:totRanks
     rankInds = findall(x->x==uniRanks[rind], ranks4quant)
-    global totVals = totVals + length(rankInds);
+    totVals = totVals + length(rankInds);
     combQuantiles[rankInds] .= 1 - totVals/totQuantEdges;
 end
 totQuantEdges = length(findall(x->x!=0, combQuantiles));
@@ -214,3 +198,5 @@ open((combinedNetDir * "/combined.tsv"), "w") do io
     write(io, colNames)
     writedlm(io, outMatrix)
 end
+end
+

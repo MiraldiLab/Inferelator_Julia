@@ -27,26 +27,26 @@ include("../julia_fxns/estimateInstabilitiesTRNbStARS.jl")
 include("../julia_fxns/buildTRNs_mLassoStARS.jl")
 
 ## 1. Import gene expression data, list of regulators, list of target genes
-Network_Name = "MEMT_TFA_100423"
-#normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Scripts/INF_LS/Th17_example/inputs/geneExpression/th17_RNAseq254_DESeq2_VSDcounts.txt"
-#targGeneFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Scripts/INF_LS/Th17_example/inputs/targRegLists/targetGenes_names.txt"
-#potRegFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Scripts/INF_LS/Th17_example/inputs/targRegLists/potRegs_names.txt"
-#tfaGeneFile = ""
+Network_Name = "Barski_MEMT_032624_Trac_MaxATAC_TFA"
+normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Pseudobulk/RNA2/counts_combatseq_vst.txt"
+targGeneFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk_RNA/SigGenes2/celltype_log2FC0p58_FDR10/sig_genes.txt"
+potRegFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/GRN/pot_regs.txt"
+tfaGeneFile = ""
 instabilitiesDir = "../outputs/" * Network_Name 
-#priorName = "ATAC_Th17"
-#priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Scripts/INF_LS/Th17_example/inputs/priors/ATAC_Th17.tsv"
+priorName = ""
+priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Prior_MaxATAC/032324/MaxATAC_Combined_b.tsv"
 #try
 #    mkdir(instabilitiesDir)
 #catch
 #    ##
 #end
 
-normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Pseudobulk/RNA/scrna_MEMT_combatseq_filtered_vst.txt"
-targGeneFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk_RNA/SigGenes2/celltype_log2FC0p58_FDR10/sig_genes.txt"
-potRegFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/GRN/pot_regs.txt"
-tfaGeneFile = ""
-priorName = "MEMT_050723_FIMOp5_normF.tsv"
-priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Prior/MEMT_050723_FIMOp5_normF.tsv"
+#normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Pseudobulk/RNA/scrna_MEMT_combatseq_filtered_vst.txt"
+#targGeneFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk_RNA/SigGenes2/celltype_log2FC0p58_FDR10/sig_genes.txt"
+#potRegFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/GRN/pot_regs.txt"
+#tfaGeneFile = ""
+#priorName = "MEMT_050723_FIMOp5_normF.tsv"
+#priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Prior/MEMT_050723_FIMOp5_normF.tsv"
 #priorName = "prior_MaxATAC"
 #priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Prior_MaxATAC/MaxATAC_Combined_q.tsv"
 try
@@ -83,7 +83,7 @@ tock()
 println("3. estimateInstabilitiesTRNbStARS.jl")
 
 lambdaBias = .5
-tfaOpt = "" # options are "" or ""
+tfaOpt = "" # options are "" or "_TFmRNA"
 totSS = 100
 targetInstability = .05
 lambdaMin = .01

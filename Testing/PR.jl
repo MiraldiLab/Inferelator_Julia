@@ -3,12 +3,11 @@ using DelimitedFiles
 using JLD2
 using PyPlot
 
-instabOutMat = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/Th17_50ss_TFA_lambda50_cor10/instabOutMat.jl"
 gsRegsFile = ""
-gsFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Scripts/INF_LS/Th17_example/inputs/priors/KO_merged_sp.tsv"
-targGeneFile = ""
-infTrnFile = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/Th17_50ss_TFA_lambda50_cor10/edges.txt"
-output = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/Th17_50ss_TFA_lambda50_cor10"
+gsFile = "/data/miraldiNB/wayman/projects/Tfh10/outs/202112/GRN/inputs/GS/RNA/priors/Log2FC0p5_FDR20_Rank50/prior_RNA_Thelper_Miraldi2019Th17_combine_Log2FC0p5_FDR20_Rank50_Frob_sp.tsv"
+targGeneFile = "/data/miraldiNB/Katko/Projects/Wayman_CD4/Inferelator_Inputs/pottargs.txt"
+infTrnFile = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/Wayman_TFA/edges_cor100.txt"
+output = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/Wayman_TFA"
 
 include("../julia_fxns/calcAupr.jl")
 
@@ -46,8 +45,8 @@ end
 if targGeneFile != ""
     gsTargInds = findall(in(gsPotTargs), gsTargs)
 else
-    gsTargInds = 1:length(gsTargs); # consider all target genes
-nfs = []
+    gsTargInds = 1:length(gsTargs) # consider all target genes
+    nfs = []
 end
 
 keepInds = intersect(intersect(gsRegInds,gsTargInds),keepWeights) # sort gs to only non-zero weights and regs/targs wanting to keep
@@ -72,6 +71,10 @@ end
 
 gsEdgesByTf = Array{String}[]
 gsRandAuprByTf = zeros(totGsRegs)
+gsRegs = gsRegs[keepInds]
+gsTargs = gsTargs[keepInds]
+gsWeights = gsWeights[keepInds]
+gsEdges = gsEdges[keepInds]
 for gind = 1:totGsRegs
     currInds = findall(x -> x == uniGsRegs[gind], gsRegs)
     push!(gsEdgesByTf, vec(permutedims(gsEdges[currInds])))
@@ -152,7 +155,7 @@ axhline(y = gsRandPR, linestyle = "dashed", color = "k")
 plot(gsRecalls,gsPrecisions, color = "b") # method performance
 xlabel("Recall")
 ylabel("Precision")
-xlim(0,0.05)
+xlim(0,0.1)
 ylim(0,1)
 savefig((output * "/PR.png"))
 plt.clf()
@@ -167,4 +170,4 @@ ylim(0,1)
 savefig((output * "/ROC.png"))
 plt.clf()
 
-@save (output * "/PR.jld") gsAuprs gsArocs gsPrecisions gsRecalls gsFprs gsStepVals gsF1scores
+@save (output * "/PR_scenic.jld") gsAuprs gsArocs gsPrecisions gsRecalls gsFprs gsStepVals gsF1scores
