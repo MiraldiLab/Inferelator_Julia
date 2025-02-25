@@ -27,34 +27,44 @@ include("../julia_fxns/CombineTRN/combineTRN1.jl")
 include("../julia_fxns/CombineTRN/combineTRN2.jl")
 
 tfaOptions = ["", "TFmRNA"]
-networkBaseName = "CTL_Klf2" # Name of network
+networkBaseName = "Test_022525" # Name of network
 ## Inputs
 # Normalized gene expression matrix (genes x Pseudobulk). Often normalized with DESeq2
-normGeneExprFile = "/data/miraldiNB/Katko/Projects/Julia2/Inputs/GeneExpression/CTL_Klf2.txt"
+normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Pseudobulk/RNA2/counts_combatseq_vst.txt"
+
 # List of target genes
-targGeneFile = "/data/miraldiNB/Katko/Projects/Julia2/Inputs/TargetGenes/CTL_Klf2_targets.txt"
+targGeneFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk_RNA/SigGenes2/celltype_log2FC0p58_FDR10/sig_genes.txt"
+
 # List of TFs
-potRegFile = "/data/miraldiNB/Katko/Projects/Julia2/Inputs/PotRegs/CTL_Klf2.txt"
+potRegFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/GRN/pot_regs_test.txt"
+
 # List of genes to calculate TFA for. Leave empty for all genes (typical)
 tfaGeneFile = ""
+
 # Prior matrix
-priorFile = "/data/miraldiNB/Katko/Projects/Julia2/Inputs/Priors/CTL_Klf2_FIMOp5_q.tsv"
+#priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Prior_MaxATAC/032324/MaxATAC_Combined_b.tsv"
+priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/test.txt"
+
+# List of prior files for penalties
+priorFile_penalties = ["/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Prior_MaxATAC/032324/MaxATAC_Combined_b.tsv", 
+                        "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/TRAC_loop/Prior/TracPrior_FIMOp5_b.tsv"]
+
 
 ## Parameters 
-totSS = 100 # Build this many subsampled networks. Typically 50-100. High number may lead to more stable predictions but longer runtime
+totSS = 50 # Build this many subsampled networks. Typically 50-100. High number may lead to more stable predictions but longer runtime
 edgeSS = 0  # Subsample edges for TFA. 0 for no subsampling (typically 0)
 minTargets = 3 # Min targets a TF should have in prior (typically 3)
-lambdaBias = .5 # Penalty applied to non-prior supported interactions (typically 0.5)
+lambdaBias = [.5] # List of penalties applied to each non-prior supported interactions (typically 0.5)
 targetInstability = .05 # bStARs instability parameter (typically 0.05)
-lambdaMin = .001 # Min lambda to consider (typically 0.01)
-lambdaMax = 2 # Max lambda to consider (typically 1)
+lambdaMin = .01 # Min lambda to consider (typically 0.01)
+lambdaMax = 1 # Max lambda to consider (typically 1)
 extensionLimit = 1
-totLogLambdaSteps = 20 # will have this many steps per log10 within bStARS lambda range
-bStarsTotSS = 10 # Number of subsamples used to estimate lambda range. (typically 3-10)
+totLogLambdaSteps = 10 # will have this many steps per log10 within bStARS lambda range
+bStarsTotSS = 3 # Number of subsamples used to estimate lambda range. (typically 3-10)
 subsampleFrac = 0.63 # Number of pseudobulks (or cells) to use in each subsample. (1/e = 0.63 is typical but may depend on dataset)
 leaveOutSampleList = "" # Empty for no leaveout
 leaveOutInf = "" # Empty for no leaveout
-correlation_weight = 10 # How heavy to weight correlation (typically 1)
+correlation_weight = 1 # How heavy to weight correlation (typically 1)
 priorMergedTfsFile = "" # Empty if you dont have a merged TF file
 meanEdgesPerGene = 10 # Average number of TFs that regulate each gene. Effects size of final network (typically 10) 
 combineOpt = "max" # Either max or mean (typically max)
@@ -67,7 +77,7 @@ for i in 1:2
     end
     tfaOpt = tfaOptions[i]
     ## 1. Import gene expression data, list of regulators, list of target genes
-    instabilitiesDir = "../outputs/" * Network_Name 
+    instabilitiesDir = "../outputsMichael/" * Network_Name 
     try
         mkdir(instabilitiesDir)
     catch
@@ -93,7 +103,7 @@ for i in 1:2
     tick()
     estimateInstabilitiesTRNbStARS(geneExprMat,tfaMat,lambdaBias,tfaOpt,
         totSS,targetInstability,lambdaMin,lambdaMax,totLogLambdaSteps,
-        subsampleFrac,instabOutMat,leaveOutSampleList,bStarsTotSS,extensionLimit)
+        subsampleFrac,instabOutMat,leaveOutSampleList,bStarsTotSS,extensionLimit, priorFile_penalties)
     tock()
     ## 4. For a given instability cutoff and model size, rank TF-geneinteractions, and calculate stabilities 
     try # not all priors have merged TFs and merged TF files
@@ -114,7 +124,8 @@ for i in 1:2
     tock()
 end
 
-combinedNetDir = "../outputs/" * networkBaseName * "_Combined"
-nets2combine = ["../outputs/" * networkBaseName * "_TFA/trnOutMat.jld"; "../outputs/" * networkBaseName * "_TFmRNA/trnOutMat.jld"]
+combinedNetDir = "../outputsMichael/" * networkBaseName * "_Combined"
+nets2combine = ["../outputsMichael/" * networkBaseName * "_TFA/trnOutMat.jld"; "../outputsMichael/" * networkBaseName * "_TFmRNA/trnOutMat.jld"]
 combineGRNs(meanEdgesPerGene, combineOpt, combinedNetDir, nets2combine)
+priorFile = combinedNetDir * "/combined_sp.tsv"
 combineGRNs2(combinedNetDir, normGeneExprFile, targGeneFile, potRegFile, tfaGeneFile, priorFile, edgeSS, minTargets)

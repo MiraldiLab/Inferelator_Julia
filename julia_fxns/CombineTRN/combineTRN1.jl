@@ -198,5 +198,21 @@ open((combinedNetDir * "/combined.tsv"), "w") do io
     write(io, colNames)
     writedlm(io, outMatrix)
 end
+df = DataFrame(outMatrix, [:column1, :column2, :column3, :column4, :column5, :column6, :column7, :column8])
+outMatrix_wide = unstack(df, :column2, :column1, :column5)
+outMatrix_wide = coalesce.(outMatrix_wide, 0)
+open((combinedNetDir * "/combined_sp.tsv"), "w") do io
+    # Modify the column names: make the first column name empty
+    colnames = names(outMatrix_wide)
+    colnames[1] = ""  # Set the first column name (row names) to an empty string
+
+    # Write the modified header
+    println(io, join(colnames, "\t"))
+
+    # Write each row
+    for row in eachrow(outMatrix_wide)
+        println(io, join(row, "\t"))
+    end
+end
 end
 

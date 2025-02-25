@@ -19,17 +19,17 @@ source('/data/miraldiNB/wayman/scripts/utils_cismap.R')
 
 ####### INPUTS #######
 # Output directory
-dir_out <- '/data/miraldiNB/Katko/Projects/Julia2/Inputs/Priors'
+dir_out <- '/data/miraldiNB/Katko/Projects/Julia/PriorMethods/Priors'
 # Prior name (used for output filenames)
-name_prior <- 'Treg_Klf2'
+name_prior <- 'CorPrior'
 # Fimo results directory
-file_res_FIMO <- '/data/miraldiNB/Katko/Projects/Julia2/Inputs/Priors/FIMO/Treg_Klf2_FIMO_res.tsv' 
+file_res_FIMO <- '/data/miraldiNB/Katko/Projects/Julia/PriorMethods/Mouse/fimo_subset_cor20.txt' 
 # genome
 genome <- 'mm10' # genome build
 # Motif Scanning Type
 type_scan <- 'FIMO' # type of motif scanning (options: 'MOODS', 'FIMO')
 # ATAC-seq peaks bed file
-file_peaks <- '/data/miraldiNB/Katko/Projects/Wayman_CD4/Peaks/bed/Treg_Klf2.bed'
+file_peaks <- '/data/miraldiNB/Katko/Projects/Julia/PriorMethods/Mouse/peaks_cor20_bed.bed'
 # Regulators list (NULL for all)
 file_tf <- NULL
 # Gene list (NULL for all)

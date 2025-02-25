@@ -11,3 +11,4 @@ DataFrames
 CategoricalArrays
 SparseArrays
 PyPlot
+namedArrays

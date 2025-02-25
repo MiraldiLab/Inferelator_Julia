@@ -5,9 +5,9 @@ using PyPlot
 
 gsRegsFile = ""
 gsFile = "/data/miraldiNB/wayman/projects/Tfh10/outs/202112/GRN/inputs/GS/RNA/priors/Log2FC0p5_FDR20_Rank50/prior_RNA_Thelper_Miraldi2019Th17_combine_Log2FC0p5_FDR20_Rank50_Frob_sp.tsv"
-targGeneFile = "/data/miraldiNB/Katko/Projects/Wayman_CD4/Inferelator_Inputs/pottargs.txt"
-infTrnFile = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/Wayman_TFA/edges_cor100.txt"
-output = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/Wayman_TFA"
+targGeneFile = "/data/miraldiNB/Ellie/Inferelator_Julia/inputs/targs_gs.txt"
+infTrnFile = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/TestNetwork_CorPrior/edges_subset.txt"
+output = "/data/miraldiNB/Katko/Projects/Julia/Inferelator_Julia/outputs/TestNetwork_CorPrior"
 
 include("../julia_fxns/calcAupr.jl")
 

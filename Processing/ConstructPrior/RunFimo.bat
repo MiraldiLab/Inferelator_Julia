@@ -13,7 +13,7 @@ module load meme/5.4.1
 
 ####### INPUTS #######
 # Output directory
-dirOut='/data/miraldiNB/Katko/Projects/Julia2/Inputs/Priors/FIMO'
+dirOut='/data/miraldiNB/Katko/Projects/Julia2/Inputs/Priors/Test'
 # Genome fasta (ensure correct species before running)
 fileFa='/data/miraldiLab/team/wayman/databank/genome/mm10/mm10_ucsc_gold.fa'
 # List of bed files to process. Text file. Each line is a path to a file

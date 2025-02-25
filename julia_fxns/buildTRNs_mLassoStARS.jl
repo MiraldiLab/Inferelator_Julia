@@ -1,6 +1,9 @@
 using Statistics
 using CSV
 using DelimitedFiles
+using LinearAlgebra
+
+include("../julia_fxns/partialCorrelation.jl")
 
 function buildTRNs_mLassoStARS(instabOutMat,tfaMat,priorMergedTfsFile,
     meanEdgesPerGene,targInstability,instabSource,subsampHistPdf,trnOutMat,correlation_weight,
@@ -171,17 +174,12 @@ for targ = 1:totUniTargs
     rankVecInds = findall(in(vals),currRegs)
     currTargVals = vec(transpose(responseMat[targInd,:]))
     currPredVals = transpose(predictorMat[regressIndsMat,:])
-    prho = []
-    for i in 1:length(regressIndsMat)
-        inds = setdiff(1:length(regressIndsMat), i)
-        #if length(inds) == 0
-        #    push!(prho,corspearman(currTargVals, vec(currPredVals[:,i])))
-        #else
-        #   push!(prho,partialcor(currTargVals,vec(currPredVals[:,i]), currPredVals[:,inds]))
-        #end
-        #push!(prho,corspearman(currTargVals, vec(currPredVals[:,i])))
-        push!(prho, cor(currTargVals, currPredVals[:,i]))
-    end
+    combTargPreds = vcat(currTargVals', currPredVals')'
+    combTargPreds = permutedims(combTargPreds')
+    prho = partialCorrelationMat(combTargPreds; first_vs_all = true)
+    prho = prho[2:end]
+    prho = vec(prho)
+
     if length(findall(x -> x == NaN, prho)) == 0  # make sure there weren't too many edges, 
         allCoefs[targInd,regressIndsMat] = prho
     else
