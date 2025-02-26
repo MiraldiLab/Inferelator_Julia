@@ -146,6 +146,9 @@ end
 # priorWeight for a TF-Gene pair will be 1 if interaction not in prior and 1-lambdaBias if
 # interaction is in prior
 priorWeightsMat = ones(totTargGenes,totPreds)
+lambdaSort = sortperm(lambdaBias)
+lambdaBias = lambdaBias[lambdaSort]
+priorFile_penalties = priorFile_penalties[lambdaSort]
 for (file, lambda) in zip(priorFile_penalties, lambdaBias)
     fid = open(file)
     C = readdlm(fid,'\t','\n', skipstart=0)
