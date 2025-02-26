@@ -5,7 +5,7 @@ include("../julia_fxns/getMLassoStARSinstabilitiesPerGeneAndNet.jl")
 
 function estimateInstabilitiesTRNbStARS(geneExprMat,tfaMat,lambdaBias,tfaOpt,
     totSS,targetInstability,lambdaMin,lambdaMax,totLogLambdaSteps,subsampleFrac,
-    instabOutMat,leaveOutSampleList,bStarsTotSS,extensionLimit)
+    instabOutMat,leaveOutSampleList,bStarsTotSS,extensionLimit, priorFile_penalties)
 ## estimateInstabilitiesTRNbStARS(geneExprMat,tfaMat,lambdaBias,tfaOpt,...
 #c    totSS,targetInstability,lambdaMin,lambdaMax,totLogLambdaSteps,subsampleFrac,...
 #     instabOutMat,leaveOutSampleList,bStarsTotSS,extensionLimit)
@@ -145,6 +145,29 @@ end
 
 # priorWeight for a TF-Gene pair will be 1 if interaction not in prior and 1-lambdaBias if
 # interaction is in prior
+priorWeightsMat = ones(totTargGenes,totPreds)
+for (file, lambda) in zip(priorFile_penalties, lambdaBias)
+    fid = open(file)
+    C = readdlm(fid,'\t','\n', skipstart=0)
+    pRegsTmp = C[1,:]
+    pRegsTmp = pRegsTmp[2:end]
+    pRegsTmp = convert(Vector{String}, pRegsTmp)
+    C = C[2:end,:]
+    pTargsTmp = C[:,1]
+    pTargsTmp = convert(Vector{String}, pTargsTmp)
+    pIntsTmp = C[:,2:end]
+
+    pTargsTmp_inds = [findfirst(==(x), pTargsTmp) for x in targGenes if x in pTargsTmp]
+    pTargsTmp = [x for x in targGenes if x in pTargsTmp]
+    pRegsTmp_inds = [findfirst(==(x), pRegsTmp) for x in allPredictors if x in pRegsTmp]
+    pRegsTmp = [x for x in allPredictors if x in pRegsTmp]
+    pIntsTmp = pIntsTmp[pTargsTmp_inds, pRegsTmp_inds]
+
+    targInds = [findfirst(==(x), targGenes) for x in pTargsTmp if x in targGenes]
+    regsInds = [findfirst(==(x), allPredictors) for x in pRegsTmp if x in allPredictors]
+    WeightMat_tmp = ones(length(pTargsTmp),length(pRegsTmp)) .- (1-lambda)*abs.(sign.(pIntsTmp))
+
+end
 priorWeightsMat = ones(totTargGenes,totPreds) - (1-lambdaBias)*abs.(sign.(priorMat))
 
 
