@@ -1,4 +1,4 @@
- #= 
+#= 
  function importGeneExpGeneLists(normGeneExprFile,targGeneFile,potRegFile,...
     tfaGeneFile,outMat)
  GOALS:
@@ -33,129 +33,169 @@ using DelimitedFiles
 using Statistics
 using JLD2
 using CSV
-using TickTock
+using Arrow
+using DataFrames
 
 function importGeneExpGeneLists(normGeneExprFile, targGeneFile, potRegFile, outputFile, tfaGeneFile)
+    eps = 1E-10  # Threshold for removing low-variance genes. 
+                 #Target genes whose standard deviation across all samples is 
+                 # less than eps will be removed from the target gene matrix
+    
+    println("Step 1: Loading Expression Data")
+    currFile = normGeneExprFile
 
-eps = 1E-10; # target genes whose standard deviation across all samples is 
-    # less than eps will be removed from the target gene matrix
+    if endswith(currFile, ".arrow")
+        if isfile(currFile)
+            df_arrow = Arrow.Table(currFile)
+            df = deepcopy(DataFrame(df_arrow))
+            conditionsc = names(df)[2:end]  # Assume first column is gene names
+            conditionsc = convert(Vector{String}, conditionsc)
+            genesc = df[:, 1]  # Extract gene names
+            ncounts = Matrix(df[:, 2:end])
+        else
+            error("Gene expression (Arrow) file path is invalid. Please check the file path.")
+        end
+    else
+        if isfile(currFile)
+            # Open gene expression file
+            fid = open(currFile)
+            C = readdlm(fid, '\t', '\n', skipstart=0)
+            close(fid)
 
+            # Collect sample names (the first row of the expression matrix) 
+            conditionsc = C[1, :]
 
-# Open gene expression file
-currFile = normGeneExprFile;
-fid = open(currFile);
-C = readdlm(fid,'\t','\n', skipstart=0)
-close(fid);
+            # Depending on formatting, first entry might be empty. If so, remove it in the conditions list
+            conditionsc = filter(!isempty, conditions)
+            # convert conditions vector from type "any" to type "string" for speed reasons
+            conditionsc = convert(Vector{String}, conditionsc)
 
-# Collect sample names (the first row of the expression matrix) 
-conditionsc = C[1,:]
+            # Store the rest of the expression matrix minus the condition names
+            C = C[2:end, :]
 
-# Depending on formatting, first entry might be empty. If so, remove it in the conditions list
-conditionsc = filter(!isempty, conditionsc)
-totSamps = length(conditionsc)
+            println("Sorting gene names")
+            inds = sortperm(C[:, 1])
+            C = C[inds, :]
+            # Collect sorted gene names, the first column. 
+            genesc = C[:,1]
+            # Store the actual expression counts in the ncounts variable. 
+            ncounts = C[:,2:end]
+        else
+            error("Gene expression file path is invalid. Please check the file path.")
+            exit(1)
+        end
+    end
 
-# convert conditions vector from type "any" to type "string" for speed reasons
-conditionsc = convert(Vector{String}, conditionsc)
+    println("Step 2: Converting Data Types")
+    genesc = convert(Vector{String}, genesc)
+    totSamps = length(conditionsc)
+    ncounts = convert(Matrix{Float64}, ncounts)
+    println("Expression Matrix Loaded Successfully")
 
-# Store the rest of the expression matrix minus the condition names
-C = C[2:end,:]
+    println("Step 3: Loading Target Genes, predictiors")
+    if isfile(targGeneFile)
+        fid = open(targGeneFile)
+        C = readdlm(fid, String, skipstart=0)
+        close(fid)
+        targGenesTmp = C
 
-# Sort the gene names alphebeticly and reorder expression matrix
-inds = sortperm(C[:,1])
-C = C[inds,:]
+        # Find which of the genes present in the expression matrix are target genes
+        indsMat = findall(in(targGenesTmp), genesc)
+        if isempty(indsMat)
+            println("No target genes found in expression data!")
+            exit(1)
+        end
+        # Include only target genes that have expression data
+        targGenes = genesc[indsMat]
+        # Subset the target gene matrix to include only the new target genes
+        targGeneMat = ncounts[indsMat, :]
+    else
+        error("Target gene file not found or invalid. Please check the file path.")
+        exit(1)
+    end
 
-# Collect sorted gene names, the first column. 
-genesc = C[:,1]
-genesc = convert(Vector{String}, genesc)
+    println("Step 4: Filtering Low-Variance Target Genes")
+    # Calculate standard deviation of each gene across samples
+    stds = std(targGeneMat, dims=2)
+    keep = findall(stds .>= eps)
+    # Convert CartesianIndex to row indices
+    keep = [index[1] for index in keep] 
 
-# Store the actual expression counts in the ncounts variable. Store it as a float matrix
-ncounts = C[:,2:end]
-ncounts = convert(Matrix{Float64}, ncounts)
-ncountSize = size(ncounts)
-println("Expression Matrix Loaded")
+    if isempty(keep)
+        error("All target genes removed due to low variance!")
+        exit(1)
+    end
 
-## load target genes, predictors, nominally expressed genes
-# Load list of target genes
-fid = open(targGeneFile)
-C = readdlm(fid, String, skipstart=0)
-close(fid)
-targGenesTmp = C
+    # Include only target genes that have expression data
+    targGenes = targGenes[keep]
+    # Subset the target gene matrix to include only the new target genes
+    targGeneMat = targGeneMat[keep, :]
+    println(length(targGenes), " target genes retained after filtering")
+    if length(targGenesTmp) > length(targGenes)
+        miss = setdiff(targGenesTmp,targGenes);
+        println("The following ", length(miss), " target genes were not found:")
+        println(miss)
+    end
 
-# Find which of the genes present in the expression matrix are target genes
-indsMat = findall(in(targGenesTmp), genesc)
+    println("Step 5: Loading Potential Regulators")
+    ## import potential regulators and find mRNA expression levels, if available
+    # Load TFs and store in potRegs
+    if isfile(potRegFile)
+        fid = open(potRegFile)
+        C = readdlm(fid, String, skipstart=0)
+        close(fid)
+        potRegs = C
 
-# Include only target genes that have expression data
-targGenes = genesc[indsMat]
+        # Find which expressed genes are in the TF list
+        indsMat = findall(in(potRegs), genesc)
+        potRegs_mRNA = genesc[indsMat]  # Vector of TFs that have expression data
 
-# Subset the target gene matrix to include only the new target genes
-targGeneMat = ncounts[indsMat,:]
+        # Expression matrix for TFs that have expression data
+        potRegMat_mRNA = ncounts[indsMat, :]
+        println(length(potRegs_mRNA), " potential regulators found with expression data.")
 
-# Calculate standard deviation of each gene across samples
-stds = std(targGeneMat, dims=2)
+        # Display TFs that have no expression data
+        if length(potRegs) > length(potRegs_mRNA)
+            miss = setdiff(potRegs,potRegs_mRNA);
+            println("The following ", length(miss), " regulators have no expression data:")
+            println(miss)
+        end
+    else
+        error("Potential regulators file not found!")
+        exit(1)
+    end
 
-# Find which target genes dont meet minimum stdev cutoff and remove them
-Zstd = findall(stds -> stds < eps, stds)
-remove = targGenes[Zstd]
+    println("Step 6: Processing TFA Genes")
+    if tfaGeneFile != ""
+        if isfile(tfaGeneFile)
+            fid = open(tfaGeneFile)
+            C = readdlm(fid, String, skipstart=0)
+            close(fid)
+            tfaGenesTmp = C[:, 1]
+            tfaGenesTmp = convert(Vector{String}, tfaGenesTmp)
+        else
+            error("TFA gene file path is invalid. Please check the file path. ")
+            exit(1)
+        end
+    else
+        println("No TFA gene file found, using all genes to estimate TFA.")
+        tfaGenesTmp = genesc
+    end
 
-if remove != []
-  println("Target gene without variation, removed from analysis:")
-  println(remove)
+    # Find which genes with expression data will be included for TFA
+    indsMat = findall(in(tfaGenesTmp), genesc)
+    tfaGenes = genesc[indsMat]
+    # Get expression matrix for genes used for TFA calculation
+    tfaGeneMat = ncounts[indsMat, :];
+        
+    println("Step 7: Saving Output Data")
+    try
+        @save outputFile conditionsc genesc potRegMat_mRNA potRegs potRegs_mRNA targGeneMat targGenes tfaGenes tfaGeneMat
+        println("Data saved successfully to ", outputFile)
+    catch e
+        println("Error saving output file: ", e)
+        return
+    end
 end
-keep = setdiff(targGenes, remove)
-keep = findall(in(keep), targGenes)
-targGenes = targGenes[keep]
-targGeneMat = targGeneMat[keep,:]
-println(length(targGenes) , " target genes total")
-if length(targGenesTmp) > length(targGenes)
-  miss = setdiff(targGenesTmp,targGenes);
-  println("The following ", length(miss), " target genes were not found:")
-  println(miss)
-end
 
-## import potential regulators and find mRNA expression levels, if available
-# Load TFs and store in potRegs
-fid = open(potRegFile)
-C = readdlm(fid,String, skipstart=0)
-close(fid)
-potRegs = C
-
-# Find which expressed genes are in the TF list
-indsMat = findall(in(potRegs), genesc)
-
-# Vector of TFs that have expression data
-potRegs_mRNA = genesc[indsMat]
-
-# Expression matrix for TFs that have expression data
-potRegMat_mRNA = ncounts[indsMat,:]
-println(length(potRegs_mRNA), " potential regulators with expression data.")
-
-# Display TFs that have no expression data
-if length(potRegs) > length(potRegs_mRNA)
-  miss = setdiff(potRegs,potRegs_mRNA);
-  println("The following ", length(miss), " regulators have no expression data:")
-  println(miss)
-end
-
-## genes to be included in TFA estimation (e.g., nominally expressed)
-if tfaGeneFile != ""
-    fid = open(tfaGeneFile)
-    C = readdlm(fid,String,skipstart=0)
-    close(fid)
-    tfaGenesTmp = C
-    tfaGenesTmp = tfaGenesTmp[:,1]
-    tfaGenesTmp = convert(Vector{String}, tfaGenesTmp)
-else
-    println("No TFA gene file found, all genes will be used to estimate TFA.")
-    tfaGenesTmp = genesc;
-end
-
-# Find which genes with expression data will be included for TFA
-indsMat = findall(in(tfaGenesTmp), genesc)
-tfaGenes = genesc[indsMat]
-
-# Get expression matrix for genes used for TFA calculation
-tfaGeneMat = ncounts[indsMat,:];
-
-@save outputFile conditionsc genesc potRegMat_mRNA potRegs potRegs_mRNA targGeneMat targGenes tfaGenes tfaGeneMat
-end
 
