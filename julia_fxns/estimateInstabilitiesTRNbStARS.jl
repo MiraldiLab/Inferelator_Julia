@@ -2,6 +2,7 @@ using JLD2
 using DelimitedFiles
 include("../julia_fxns/getMLassoStARSlambdaRangePerGene.jl")
 include("../julia_fxns/getMLassoStARSinstabilitiesPerGeneAndNet.jl")
+include("../julia_fxns/updatePenaltyMatrix.jl")
 
 function estimateInstabilitiesTRNbStARS(geneExprMat,tfaMat,lambdaBias,tfaOpt,
     totSS,targetInstability,lambdaMin,lambdaMax,totLogLambdaSteps,subsampleFrac,
@@ -146,34 +147,7 @@ end
 # priorWeight for a TF-Gene pair will be 1 if interaction not in prior and 1-lambdaBias if
 # interaction is in prior
 priorWeightsMat = ones(totTargGenes,totPreds)
-lambdaSort = sortperm(lambdaBias)
-lambdaBias = lambdaBias[lambdaSort]
-priorFile_penalties = priorFile_penalties[lambdaSort]
-for (file, lambda) in zip(priorFile_penalties, lambdaBias)
-    fid = open(file)
-    C = readdlm(fid,'\t','\n', skipstart=0)
-    pRegsTmp = C[1,:]
-    pRegsTmp = pRegsTmp[2:end]
-    pRegsTmp = convert(Vector{String}, pRegsTmp)
-    C = C[2:end,:]
-    pTargsTmp = C[:,1]
-    pTargsTmp = convert(Vector{String}, pTargsTmp)
-    pIntsTmp = C[:,2:end]
-
-    pTargsTmp_inds = [findfirst(==(x), pTargsTmp) for x in targGenes if x in pTargsTmp]
-    pTargsTmp = [x for x in targGenes if x in pTargsTmp]
-    pRegsTmp_inds = [findfirst(==(x), pRegsTmp) for x in allPredictors if x in pRegsTmp]
-    pRegsTmp = [x for x in allPredictors if x in pRegsTmp]
-    pIntsTmp = pIntsTmp[pTargsTmp_inds, pRegsTmp_inds]
-
-    targInds = [findfirst(==(x), targGenes) for x in pTargsTmp if x in targGenes]
-    regsInds = [findfirst(==(x), allPredictors) for x in pRegsTmp if x in allPredictors]
-    WeightMat_tmp = ones(length(pTargsTmp),length(pRegsTmp)) .- (1-lambda)*abs.(sign.(pIntsTmp))
-
-end
-priorWeightsMat = ones(totTargGenes,totPreds) - (1-lambdaBias)*abs.(sign.(priorMat))
-
-
+updatePenaltyMatrix(priorWeightsMat, targGenes, allPredictors, priorFile_penalties, lambdaBias)
 
 if tfaOpt != ""
     ## set lambda penalty to infinity for positive feedback edges where TF 
