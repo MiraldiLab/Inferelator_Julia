@@ -95,8 +95,8 @@ stds = std(targGeneMat, dims=2)
 
 # Find which target genes dont meet minimum stdev cutoff and remove them
 Zstd = findall(stds -> stds < eps, stds)
-#remove = targGenes[Zstd]
-remove = []
+remove = targGenes[Zstd]
+
 if remove != []
   println("Target gene without variation, removed from analysis:")
   println(remove)
