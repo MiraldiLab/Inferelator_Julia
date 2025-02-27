@@ -51,7 +51,7 @@ close(fid);
 conditionsc = C[1,:]
 
 # Depending on formatting, first entry might be empty. If so, remove it in the conditions list
-conditionsc = conditionsc[2:end]
+conditionsc = filter(!isempty, conditionsc)
 totSamps = length(conditionsc)
 
 # convert conditions vector from type "any" to type "string" for speed reasons
