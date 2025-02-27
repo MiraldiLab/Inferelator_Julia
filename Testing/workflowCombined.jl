@@ -50,7 +50,8 @@ priorFile = "/data/miraldiNB/Katko/Projects/Julia/ZiData/IBD_CD4T_ATAC_motif_sca
 
 
 # List of prior files for penalties
-priorFile_penalties = ["/data/miraldiNB/Katko/Projects/Julia/ZiData/IBD_CD4T_ATAC_motif_scan_maxATAC_prior.tsv", "/data/miraldiNB/Katko/Projects/Julia/ZiData/Dorothea_binary_prior.tsv"]
+priorFile_penalties = ["/data/miraldiNB/Katko/Projects/Julia/ZiData/IBD_CD4T_ATAC_motif_scan_maxATAC_prior.tsv", 
+                        "/data/miraldiNB/Katko/Projects/Julia/ZiData/Dorothea_binary_prior.tsv"]
 
 
 ## Parameters 
@@ -130,5 +131,5 @@ end
 combinedNetDir = "../outputsMichael/" * networkBaseName * "_Combined"
 nets2combine = ["../outputsMichael/" * networkBaseName * "_TFA/trnOutMat.jld"; "../outputsMichael/" * networkBaseName * "_TFmRNA/trnOutMat.jld"]
 combineGRNs(meanEdgesPerGene, combineOpt, combinedNetDir, nets2combine)
-priorFile = combinedNetDir * "/combined_sp.tsv"
-combineGRNs2(combinedNetDir, normGeneExprFile, targGeneFile, potRegFile, tfaGeneFile, priorFile, edgeSS, minTargets)
+netCombinedSparse = combinedNetDir * "/combined_sp.tsv"
+combineGRNs2(combinedNetDir, normGeneExprFile, targGeneFile, potRegFile, tfaGeneFile, netCombinedSparse, edgeSS, minTargets; geneExprMat)
