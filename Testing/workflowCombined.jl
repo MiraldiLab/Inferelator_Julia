@@ -27,34 +27,37 @@ include("../julia_fxns/CombineTRN/combineTRN1.jl")
 include("../julia_fxns/CombineTRN/combineTRN2.jl")
 
 tfaOptions = ["", "TFmRNA"]
-networkBaseName = "Test_022525" # Name of network
+networkBaseName = "ZiTest_022525_2" # Name of network
 ## Inputs
 # Normalized gene expression matrix (genes x Pseudobulk). Often normalized with DESeq2
-normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Pseudobulk/RNA2/counts_combatseq_vst.txt"
+#normGeneExprFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Pseudobulk/RNA2/counts_combatseq_vst.txt"
+normGeneExprFile = "/data/miraldiNB/Katko/Projects/Julia/ZiData/IBD_multiome_CD4T_DEseq2_CellTypeDiseaseTissueStatus_vst_counts_5pct_min.txt"
 
 # List of target genes
-targGeneFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk_RNA/SigGenes2/celltype_log2FC0p58_FDR10/sig_genes.txt"
+#targGeneFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Seurat/Pseudobulk_RNA/SigGenes2/celltype_log2FC0p58_FDR10/sig_genes.txt"
+targGeneFile = "/data/miraldiNB/Katko/Projects/Julia/ZiData/IBD_enhancer_target_DE_gene_combined_5pct_min.txt"
 
 # List of TFs
-potRegFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/GRN/pot_regs_test.txt"
+#potRegFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/GRN/pot_regs_test.txt"
+potRegFile = "/data/miraldiNB/Katko/Projects/Julia/ZiData/TF_CD4T_sig_celltype_status_minFrac5_RELI_targets_TFA_ANOVA_Pval_FDR5.txt"
 
 # List of genes to calculate TFA for. Leave empty for all genes (typical)
 tfaGeneFile = ""
 
 # Prior matrix
 #priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Prior_MaxATAC/032324/MaxATAC_Combined_b.tsv"
-priorFile = "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/test.txt"
+priorFile = "/data/miraldiNB/Katko/Projects/Julia/ZiData/IBD_CD4T_ATAC_motif_scan_maxATAC_prior.tsv"
+
 
 # List of prior files for penalties
-priorFile_penalties = ["/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/Prior_MaxATAC/032324/MaxATAC_Combined_b.tsv", 
-                        "/data/miraldiNB/Katko/Projects/Barski_CD4_Multiome/Outs/TRAC_loop/Prior/TracPrior_FIMOp5_b.tsv"]
+priorFile_penalties = ["/data/miraldiNB/Katko/Projects/Julia/ZiData/IBD_CD4T_ATAC_motif_scan_maxATAC_prior.tsv", "/data/miraldiNB/Katko/Projects/Julia/ZiData/Dorothea_binary_prior.tsv"]
 
 
 ## Parameters 
 totSS = 50 # Build this many subsampled networks. Typically 50-100. High number may lead to more stable predictions but longer runtime
 edgeSS = 0  # Subsample edges for TFA. 0 for no subsampling (typically 0)
 minTargets = 3 # Min targets a TF should have in prior (typically 3)
-lambdaBias = [.5] # List of penalties applied to each non-prior supported interactions (typically 0.5)
+lambdaBias = [.75,.25] # List of penalties applied to each non-prior supported interactions (typically 0.5)
 targetInstability = .05 # bStARs instability parameter (typically 0.05)
 lambdaMin = .01 # Min lambda to consider (typically 0.01)
 lambdaMax = 1 # Max lambda to consider (typically 1)
