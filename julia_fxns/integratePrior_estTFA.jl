@@ -71,7 +71,7 @@ C = readdlm(fid,'\t','\n', skipstart=0)
 pRegsTmp = C[1,:]
 
 # If first entry is empty, remove it (depends on formatting)
-pRegsTmp = pRegsTmp[2:end]
+pRegsTmp = filter(!isempty, pRegsTmp)
 
 # Convert the pRegsTmp vector to type string for speed purposes 
 pRegsTmp = convert(Vector{String}, pRegsTmp)
