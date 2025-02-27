@@ -5,7 +5,7 @@ using DelimitedFiles
 using JLD2
 using NamedArrays
 
-include("../importGeneExpGeneLists2.jl")
+include("../importGeneExpGeneLists.jl")
 include("../integratePrior_estTFA.jl")
 include("../estimateInstabilitiesTRNbStARS.jl")
 include("../buildTRNs_mLassoStARS.jl")
