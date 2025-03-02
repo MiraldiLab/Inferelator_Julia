@@ -66,7 +66,7 @@ function importGeneExpGeneLists(normGeneExprFile, targGeneFile, potRegFile, outp
             conditionsc = C[1, :]
 
             # Depending on formatting, first entry might be empty. If so, remove it in the conditions list
-            conditionsc = filter(!isempty, conditions)
+            conditionsc = filter(!isempty, conditionsc)
             # convert conditions vector from type "any" to type "string" for speed reasons
             conditionsc = convert(Vector{String}, conditionsc)
 
