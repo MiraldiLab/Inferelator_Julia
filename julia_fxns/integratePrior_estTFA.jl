@@ -135,9 +135,6 @@ if(file1 == false || file2 == false)
     mergedTFsExist = 0
 end
 
-mergedTFsExist = 0
-
-
 if mergedTFsExist == 1
     mtIn = open(mergedTFs)
     C = readdlm(mtIn,'\t','\n', skipstart=0)
@@ -163,16 +160,14 @@ if mergedTFsExist == 1
         # get first line and see what regulators we have    
         tline = readline(fid)
         pRegsTmp = split(tline,"\t")
-        if pRegsTmp[1] == ""
-            pRegsTmp = pRegsTmp[2:length(pRegsTmp)]
-        end
+        pRegsTmp = pRegsTmp[2:length(pRegsTmp)]
+        #pRegsTmp = convert(Vector{String, pRegsTmp})
         totPRegs = length(pRegsTmp)        
         fid = open(priorFile)
         C = readdlm(fid,'\t',skipstart=0)
         pTargsTmp = C[:,1]
-        if pTargsTmp[1] == ""
-            pTargsTmp = pTargsTmp[2:length(pTargsTmp)]
-        end
+        pTargsTmp = pTargsTmp[2:length(pTargsTmp)]
+        pTargsTmp = convert(Vector{String}, pTargsTmp)
         pIntsTmp = C[2:end,2:end]  
         pIntsTmp = convert(Matrix{Float64},pIntsTmp)
     end        

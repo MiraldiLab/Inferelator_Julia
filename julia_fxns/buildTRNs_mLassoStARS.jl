@@ -192,10 +192,11 @@ end
 
 # save stabilities, targs and TFs before merging -- needed for
 # R^2_pred, LO analysis
-allStabsMergedTFs = allStabsTest
+allStabsMergedTFs = allStabsTest[:]
+keepInds = findall(x -> x != 0 && x != Inf, allStabsMergedTFs) 
+allStabsMergedTFs = allStabsMergedTFs[keepInds]
 
-
-mergeTfLocVec = zeros(totNetTfs,1) # for keeping track of merged TFs (needed for partial correlation calculation)
+mergeTfLocVec = zeros(totNetTfs) # for keeping track of merged TFs (needed for partial correlation calculation)
 
 if priorMergedTfsFile != "" # there could be merged TFs
     println("Found Merged Prior")
@@ -209,7 +210,7 @@ if priorMergedTfsFile != "" # there could be merged TFs
     # will overlap with the GS
     totMerged = length(tmergeVals)
     rmInds = []        # remove merged TFs from regulators
-    addRegs = ""
+    addRegs = []
     addInts = []
     addCoefs = []
     addPMat = []
@@ -226,14 +227,22 @@ if priorMergedTfsFile != "" # there could be merged TFs
             totIndTfs = length(indTfs)
             for indt = 1:totIndTfs
                 indTf = indTfs[indt]
-                addRegs = [addRegs; repeat(indTf, totMints,1)]
-                addRegs = strvcat(addRegs,strvcat(repmat(indTf,totMInts,1)))
-                addInts = [addInts,allStabsTest[:,inputLocs]]
-                addPMat = [addPMat,inPriorMat[:,inputLocs]]
-                addQuants = [addQuants, allQuants[:,inputLocs]]
-                addCoefs = [addCoefs, allQuants[:,inputLocs]]
-                addPredMat = [addPredMat ; predictorMat[inputLocs,:]]
-                addLoc = [addLoc; mind]
+                append!(addRegs, fill(indTf, 1))
+                append!(addInts, allStabsTest[:,inputLocs])
+                append!(addPMat, inPriorMat[:,inputLocs])
+                append!(addQuants, allQuants[:,inputLocs])
+                append!(addCoefs, allQuants[:,inputLocs])
+                append!(addPredMat, predictorMat[inputLocs,:])
+                append!(addLoc, mind)
+                #addRegs = [addRegs; repeat(indTf, totMInts)]
+                #addRegs = strvcat(addRegs,strvcat(repmat(indTf,totMInts,1)))
+                #addInts = [addInts,allStabsTest[:,inputLocs]]
+                #addPMat = [addPMat,inPriorMat[:,inputLocs]]
+                #addQuants = [addQuants, allQuants[:,inputLocs]]
+                #addQuants = [addQuants, (allQuants[:])[inputLocs]]
+                #addCoefs = [addCoefs, allQuants[:,inputLocs]]
+                #addPredMat = [addPredMat ; predictorMat[inputLocs,:]]
+                #addLoc = [addLoc; mind]
             end                
          end
     end    
@@ -241,13 +250,21 @@ if priorMergedTfsFile != "" # there could be merged TFs
     keepInds = setdiff(1:totNetTfs,rmInds)
     # remove merged TFs and add individual TFs
     if length(addRegs) > 0
-        allPredictors = vcat(vcat(allPredictors[keepInds]),addRegs)
-        allStabsTest = [allStabsTest[:,keepInds] addInts]
-        allCoefs = [allCoefs[:,keepInds] addCoefs]
-        allQuants = [allQuants[:,keepInds] addQuants]
-        inPriorMat = [inPriorMat[:,keepInds] addPMat]
-        predictorMat = [predictorMat[keepInds,:]; addPredMat]   
-        mergeTfLocVec = [mergeTfLocVec[keepInds]; addLoc]
+        #allPredictors = vcat(vcat(allPredictors[keepInds]),addRegs)
+        #allStabsTest = [allStabsTest[:,keepInds] addInts]
+        #allCoefs = [allCoefs[:,keepInds] addCoefs]
+        #allQuants = [allQuants[:,keepInds] addQuants]
+        #inPriorMat = [inPriorMat[:,keepInds] addPMat]
+        #predictorMat = [predictorMat[keepInds,:]; addPredMat]   
+        #mergeTfLocVec = [mergeTfLocVec[keepInds]; addLoc]
+        allPredictors = collect(allPredictors[keepInds])
+        append!(allPredictors, addRegs)
+        allStabsTest = hcat(allStabsTest[:,keepInds], reshape(addInts, size(allStabsTest)[1], Int(size(addInts)[1] / size(allStabsTest)[1])))
+        allCoefs = hcat(allCoefs[:,keepInds], reshape(addCoefs, size(allStabsTest)[1], Int(size(addInts)[1] / size(allStabsTest)[1])))
+        allQuants = hcat(allQuants[:,keepInds], reshape(addQuants, size(allStabsTest)[1], Int(size(addInts)[1] / size(allStabsTest)[1])))
+        inPriorMat = hcat(inPriorMat[:,keepInds], reshape(addPMat, size(inPriorMat)[1], Int(size(addPMat)[1] / size(inPriorMat)[1])))
+        predictorMat = vcat(predictorMat[keepInds, :], reshape(addPredMat, Int((size(addPredMat)[1]) / size(predictorMat)[2]), size(predictorMat)[2]))
+        append!(mergeTfLocVec, addLoc)
     end
 else
     println("No merged TFs file found.")        
@@ -263,6 +280,15 @@ totInts = totNetGenes * totNetTfs
 targs = repeat((targGenes),totNetTfs,1)
 regs1 = repeat(permutedims(allPredictors),totNetGenes,1)
 regs = reshape(regs1,totInts,1)
+
+rankings = convert(Vector{Float64}, rankings)
+coefVec = convert(Vector{Float64}, coefVec)
+inPriorVec = convert(Vector{Float64}, inPriorVec)
+predictorMat = convert(Matrix{Float64}, predictorMat)
+allStabsTest = convert(Matrix{Float64}, allStabsTest)
+allCoefs = convert(Matrix{Float64}, allCoefs)
+allQuants = convert(Matrix{Float64}, allQuants)
+inPriorMat = convert(Matrix{Float64}, inPriorMat)
 
 ## only keep nonzero rankings
 keepRankings = findall(x -> x != 0 && x != Inf, rankings)
