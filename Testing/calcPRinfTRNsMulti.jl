@@ -17,82 +17,15 @@ outNetFiles = [
             #ATAC 
             # "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/Bulk/lambda0p25_80totSS_20tfsPerGene_subsamplePCT63/TFA/edges_subset.txt", # ++TFA (ATAC)
             # "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/Bulk/lambda0p25_80totSS_20tfsPerGene_subsamplePCT63/TFmRNA/edges_subset.txt", # ++mRNA (ATAC)
-            # "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/Bulk/lambda0p25_80totSS_20tfsPerGene_subsamplePCT63/Combined/combined.tsv",  
-
-            # "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/Bulk/lambda0p5_80totSS_20tfsPerGene_subsamplePCT63/TFA/edges_subset.txt",  # +TFA (ATAC)
-            # "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/Bulk/lambda0p5_80totSS_20tfsPerGene_subsamplePCT63/TFmRNA/edges_subset.txt", # +mRNA (ATAC)
-            # "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/Bulk/lambda0p5_80totSS_20tfsPerGene_subsamplePCT63/Combined/combined.tsv", # +Combine (ATAC)
-
-            # "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/Bulk/lambda1p0_80totSS_20tfsPerGene_subsamplePCT63/TFA/edges_subset.txt", # TFA 
-            # "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/Bulk/lambda1p0_80totSS_20tfsPerGene_subsamplePCT63/TFmRNA/edges_subset.txt", # NoPrior (TFmRNA + ATAC)
-          
-
-            # ATAC + ChIP
-            # "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATAC_ChIPprior/Bulk/lambda0p25_80totSS_20tfsPerGene_subsamplePCT63/TFA/edges_subset.txt", # ++TFA (ATAC + ChIP)
-            # "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATAC_ChIPprior/Bulk/lambda0p25_80totSS_20tfsPerGene_subsamplePCT63/TFmRNA/edges_subset.txt", # ++mRNA (ATAC + ChIP) 
-
-            # "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATAC_ChIPprior/Bulk/lambda0p5_80totSS_20tfsPerGene_subsamplePCT63/TFA/edges_subset.txt",  # +TFA (ATAC + ChIP)
-            # "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATAC_ChIPprior/Bulk/lambda0p5_80totSS_20tfsPerGene_subsamplePCT63/TFmRNA/edges_subset.txt", # +mRNA (ATAC + ChIP)
-            # "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATAC_ChIPprior/Bulk/lambda0p5_80totSS_20tfsPerGene_subsamplePCT63/Combined/combined.tsv", # +Combine (ATAC + ChIP)
-
-            # "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATAC_ChIPprior/Bulk/lambda1p0_80totSS_20tfsPerGene_subsamplePCT63/TFA/edges_subset.txt", # TFA 
-
-            # ATAC + KO
-            # "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATAC_KOprior/Bulk/lambda0p25_80totSS_20tfsPerGene_subsamplePCT63/TFA/edges_subset.txt", # ++TFA (ATAC + KO)
-            # "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATAC_KOprior/Bulk/lambda0p25_80totSS_20tfsPerGene_subsamplePCT63/TFmRNA/edges_subset.txt", # ++mRNA (ATAC + KO) 
-
-            # "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATAC_KOprior/Bulk/lambda0p5_80totSS_20tfsPerGene_subsamplePCT63/TFA/edges_subset.txt",  # +TFA (ATAC + KO)
-            # "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATAC_KOprior/Bulk/lambda0p5_80totSS_20tfsPerGene_subsamplePCT63/TFmRNA/edges_subset.txt", # +mRNA (ATAC + KO)
-            # "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATAC_KOprior/Bulk/lambda0p5_80totSS_20tfsPerGene_subsamplePCT63/Combined/combined.tsv" # +Combine (ATAC + KO)
-
-            # "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATAC_KOprior/Bulk/lambda1p0_80totSS_20tfsPerGene_subsamplePCT63/TFA/edges_subset.txt" # TFA 
-
-            #=
-            # SupirFactor:
-            "/data/miraldiNB/Michael/mCD4T_Wayman/SupirFactor/Hierarchical_20250212_2043/GRN_Hierarchical_long.tsv", # Hierarchical
-            "/data/miraldiNB/Michael/mCD4T_Wayman/SupirFactor/Shallow_20250330_0212/GRN_Shallow_long.tsv", # Shallow
-
-            # Cell Oracle
-            "/data/miraldiNB/Michael/mCD4T_Wayman/CellOracle/GRNs/Unprocessed/Combined/max_pCutoff_0.1pct_combined_GRN_3cols.tsv", #Edge Capping : 20 TFs per Gene on Average (Max Combined)
-            "/data/miraldiNB/Michael/mCD4T_Wayman/CellOracle/GRNs/Unprocessed/Combined/mean_pCutoff_0.1pct_combined_GRN_3cols.tsv",
-
-            "/data/miraldiNB/Michael/mCD4T_Wayman/CellOracle/GRNs/Processed/12000/CombinedGRNs/max_combined_GRN_3cols.tsv", # Top 12000 most confident interactions (Max Combined)
-            "/data/miraldiNB/Michael/mCD4T_Wayman/CellOracle/GRNs/Processed/12000/CombinedGRNs/mean_combined_GRN_3cols.tsv",   # Top 12k (Mean Combined)
-
-            # SCENIC +
-            "/data/miraldiNB/Michael/mCD4T_Wayman/scenicPlus/eRegulons_direct_filtered.tsv",   # Direct
-            "/data/miraldiNB/Michael/mCD4T_Wayman/scenicPlus/eRegulons_extended_filtered.tsv" # Extended
-         
-
-            # ---- Inferelator singleCell
-            "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/SC/lambda0p5_220totSS_20tfsPerGene_subsamplePCT10/TFA/edges_subset.txt",    # + TFA (ATAC)
-            "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/SC/lambda0p5_220totSS_20tfsPerGene_subsamplePCT10/TFmRNA/edges_subset.txt",  # + TFmRNA (ATAC)
-            "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/SC/lambda0p5_220totSS_20tfsPerGene_subsamplePCT10/Combined/combined.tsv"
-            
-
-            # Inferelator DownSampled 1K
-            "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/SC/1KCells/lambda0p5_220totSS_20tfsPerGene_subsamplePCT27/TFA/edges_subset.txt",   # + TFA
-            "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/SC/1KCells/lambda0p5_220totSS_20tfsPerGene_subsamplePCT27/TFmRNA/edges_subset.txt", # + TFmRNA
-            "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/SC/1KCells/lambda0p5_220totSS_20tfsPerGene_subsamplePCT27/Combined/combined.tsv",   # + Combined
-             # Inferelator DownSampled 10K
-            "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/SC/10KCells/lambda0p5_220totSS_20tfsPerGene_subsamplePCT27/TFA/edges_subset.txt",   # + TFA
-            "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/SC/10KCells/lambda0p5_220totSS_20tfsPerGene_subsamplePCT27/TFmRNA/edges_subset.txt", # + TFmRNA
-            "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/SC/10KCells/lambda0p5_220totSS_20tfsPerGene_subsamplePCT27/Combined/combined.tsv",   # + Combined
-            # Inferelator DownSampled 30K
-            "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/SC/30KCells/lambda0p5_220totSS_20tfsPerGene_subsamplePCT13/TFA/edges_subset.txt",   # + TFA
-            "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/SC/30KCells/lambda0p5_220totSS_20tfsPerGene_subsamplePCT13/TFmRNA/edges_subset.txt", # + TFmRNA
-            "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/SC/30KCells/lambda0p5_220totSS_20tfsPerGene_subsamplePCT13/Combined/combined.tsv",  # + Combined
-            =#
+            # "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/Bulk/lambda0p25_80totSS_20tfsPerGene_subsamplePCT63/Combined/combined.tsv" 
         ]
 
 
 # Dictionary for gold standard files (gsParam)
 gsParam = Dict(
-    # "ChIP_GS" => "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/goldStandards/prior_ChIP_Thelper_Miraldi2019Th17_combine_FDR5_Rank50_sp.tsv",
-    # "KO_GS"  => "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/goldStandards/prior_TF_KO_RNA_Thelper_Miraldi2019Th17_combine_Log2FC0p5_FDR20_Rank50_sp.tsv",
-    # "ChIP_KO" => "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/goldStandards/prior_KC_Thelper_Miraldi2019Th17_Rank100_sp.tsv"
-    # "KO_TFs_wCHIP" => "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/goldStandards/KO_GS_for_TFs_withChIP.tsv",
-    "ChIP_TFs_wKO" => "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/goldStandards/ChIP_GS_for_TFs_withKO.tsv"
+    "ChIP_GS" => "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/goldStandards/prior_ChIP_Thelper_Miraldi2019Th17_combine_FDR5_Rank50_sp.tsv",
+    "KO_GS"  => "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/goldStandards/prior_TF_KO_RNA_Thelper_Miraldi2019Th17_combine_Log2FC0p5_FDR20_Rank50_sp.tsv",
+    "ChIP_KO" => "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/goldStandards/prior_KC_Thelper_Miraldi2019Th17_Rank100_sp.tsv"
 )
 
 # Target gene file
@@ -109,12 +42,9 @@ plotUpperLimRecall = 0.1  # Detrmines where to truncate the PR curve
 
 # Loop through each outNetFileSparse
 for (ix, outNetFileSparse) in enumerate(outNetFiles)
-    # filepath = splitext(splitdir(outNetFileSparse)[end])[1]
 
     println("Calculating Performance Metric For: ", outNetFileSparse)
     filepath = dirname(outNetFileSparse)
-
-    # netBaseName = netBaseNames[ix]
 
     # Calculate precision-recall for each gold standard (from gsParam)
     for (currGSName, currGSFile) in gsParam
