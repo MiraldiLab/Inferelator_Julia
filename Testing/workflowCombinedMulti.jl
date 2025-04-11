@@ -18,6 +18,12 @@ priorFiles = [
     "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/priors/ChIP_ATAC/ChIP_ATAC_Tfh10.tsv",
     #ATAC+KO
     "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/priors/KO_ATAC/KO_ATAC_Tfh10.tsv"
+    #=
+    # ATAC+Dorothea
+    "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/priors/ATAC_Dorothea_Tfh10.tsv",
+    # Dorothea
+    "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/priors/Dorothea_Mouse_FrobNorm.tsv"  
+    =# 
 ]
 
 # Degenerate TF-merged file
@@ -38,6 +44,12 @@ priorFilePenaltiesList = [
                     ["/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/priors/ChIP_ATAC/ChIP_ATAC_Tfh10.tsv"],
                     #ATAC+KO
                     ["/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/priors/KO_ATAC/KO_ATAC_Tfh10.tsv"] 
+                    #= 
+                    # ATAC+Dorothea
+                    ["/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/priors/ATAC_Dorothea_Tfh10.tsv"],
+                    # Dorothea
+                    ["/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/priors/Dorothea_Mouse_FrobNorm.tsv"]  
+                    =#
                       ]
 
 lambdaBiases = [
@@ -49,8 +61,19 @@ outputDirs = [
     "../outputsMichael/ATACprior/SC",
     "../outputsMichael/ATAC_ChIPprior/SC",
      "../outputsMichael/ATAC_KOprior/SC"
+    # "../outputsMichael/ATAC_DORprior/SC",
+    # "../outputsMichael/DOROTHEAprior/SC" , 
 ]
 
+#=
+outputDirs = [
+    "../outputsMichael/ATACprior/Bulk",
+    "../outputsMichael/ATAC_ChIPprior/Bulk",
+    "../outputsMichael/ATAC_KOprior/Bulk"
+    # "../outputsMichael/ATAC_DORprior/Bulk",
+    # "../outputsMichael/DOROTHEAprior/Bulk"
+]
+=#
 
 # Common input files
 # normGeneExprFile = "/data/miraldiNB/wayman/projects/Tfh10/outs/202404/pseudobulk/pseudobulk_scrna/CellType/Age/Factor1/min0.25M/counts_Tfh10_AgeCellType_pseudobulk_scrna_vst_batch_NoState.txt"
@@ -197,7 +220,7 @@ for (priorFile, outputDir, priorMergedTfsFile, priorFilePenalties) in zip(priorF
         combineGRNs2(combinedNetDir, normGeneExprFile, targGeneFile, potRegFile, tfaGeneFile, 
                         netsCombinedSparse, edgeSS, minTargets; geneExprMat)
     end
+    rm(tempTFAMat; force=true, recursive=true)  # Delete Temp File folder
 end
-
-rm(tempDir; force=true, recursive=true)  # Delete Temp File folder
 tock()
+rm(tempDir; force=true, recursive=true)  # Delete Temp File folder
