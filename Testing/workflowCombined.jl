@@ -104,23 +104,10 @@ if !isfile(tfaMat)
     integratePrior_estTFA(geneExprMat,priorFile,minTargets,edgeSS, tfaMat)
 end
 
-for i in 1:2
-    if i == 1
-        instabilitiesDir =  joinpath(dirOut ,"TFA")
-    else
-        instabilitiesDir = joinpath(dirOut ,"TFmRNA")
-    end
-    tfaOpt = tfaOptions[i]
-    mkdir(instabilitiesDir)
+for (idx, tfaOpt) in enumerate(tfaOptions)
+    instabilitiesDir = (idx == 1) ? joinpath(dirOut, "TFA") : joinpath(dirOut, "TFmRNA")
+    mkpath(instabilitiesDir)
 
-    try
-        mkdir(instabilitiesDir)
-    catch
-        ##
-    end
-
-    # geneExprMat = tempGeneExprMat
-    # tfaMat = tempTFAMat
     ## 3. 
     println("3. estimateInstabilitiesTRNbStARS.jl")
     # netSummary = "bias" * string(100*lambdaBias) * tfaOpt
@@ -133,7 +120,7 @@ for i in 1:2
         subsampleFrac,instabOutMat,leaveOutSampleList,bStarsTotSS,extensionLimit, priorFilePenalties)
     tock()
 
-    ## 4. For a given instability cutoff and model size, rank TF-geneinteractions, and calculate stabilities 
+    ## 4. For a given instability cutoff and model size, rank TF-gene interactions, and calculate stabilities 
     try # not all priors have merged TFs and merged TF files
         isfile(priorMergedTfsFile) 
     catch
