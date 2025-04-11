@@ -12,3 +12,9 @@ CategoricalArrays
 SparseArrays
 PyPlot
 namedArrays
+OrderedCollections
+Dates
+Colors
+FileIO
+StatsPlots
+InlineStrings
