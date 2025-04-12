@@ -13,17 +13,10 @@ tfaOptions = ["", "TFmRNA"]
 priorFiles = [
     #ATAC
     "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/priors/ATAC/ATAC_Tfh10.tsv",
-   
     #ATAC+ChIP
     "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/priors/ChIP_ATAC/ChIP_ATAC_Tfh10.tsv",
     #ATAC+KO
     "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/priors/KO_ATAC/KO_ATAC_Tfh10.tsv"
-    #=
-    # ATAC+Dorothea
-    "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/priors/ATAC_Dorothea_Tfh10.tsv",
-    # Dorothea
-    "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/priors/Dorothea_Mouse_FrobNorm.tsv"  
-    =# 
 ]
 
 # Degenerate TF-merged file
@@ -44,46 +37,27 @@ priorFilePenaltiesList = [
                     ["/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/priors/ChIP_ATAC/ChIP_ATAC_Tfh10.tsv"],
                     #ATAC+KO
                     ["/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/priors/KO_ATAC/KO_ATAC_Tfh10.tsv"] 
-                    #= 
-                    # ATAC+Dorothea
-                    ["/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/priors/ATAC_Dorothea_Tfh10.tsv"],
-                    # Dorothea
-                    ["/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/priors/Dorothea_Mouse_FrobNorm.tsv"]  
-                    =#
                       ]
 
 lambdaBiases = [
                 [0.25], [0.5], [1.0]  # Penalty applied to non-prior supported interactions (typically 0.5)
                 ]  
                
-
 outputDirs = [
-    "../outputsMichael/ATACprior/SC",
-    "../outputsMichael/ATAC_ChIPprior/SC",
-     "../outputsMichael/ATAC_KOprior/SC"
-    # "../outputsMichael/ATAC_DORprior/SC",
-    # "../outputsMichael/DOROTHEAprior/SC" , 
+    "../outputs/ATACprior/Bulk",
+    "../outputs/ATAC_ChIPprior/Bulk",
+    "../outputs/ATAC_KOprior/Bulk"
 ]
 
-#=
-outputDirs = [
-    "../outputsMichael/ATACprior/Bulk",
-    "../outputsMichael/ATAC_ChIPprior/Bulk",
-    "../outputsMichael/ATAC_KOprior/Bulk"
-    # "../outputsMichael/ATAC_DORprior/Bulk",
-    # "../outputsMichael/DOROTHEAprior/Bulk"
-]
-=#
 
 # Common input files
-# normGeneExprFile = "/data/miraldiNB/wayman/projects/Tfh10/outs/202404/pseudobulk/pseudobulk_scrna/CellType/Age/Factor1/min0.25M/counts_Tfh10_AgeCellType_pseudobulk_scrna_vst_batch_NoState.txt"
-normGeneExprFile = "/data/miraldiNB/Michael/GRN_Benchmark/Data/geneExpression/Tfh10_scRNA_logNorm_Counts.arrow"
+normGeneExprFile = "/data/miraldiNB/wayman/projects/Tfh10/outs/202404/pseudobulk/pseudobulk_scrna/CellType/Age/Factor1/min0.25M/counts_Tfh10_AgeCellType_pseudobulk_scrna_vst_batch_NoState.txt"
 targGeneFile = "/data/miraldiNB/wayman/projects/Tfh10/outs/202404/GRN_NoState/inputs/target_genes/gene_targ_Tfh10_SigPct5Log2FC0p58FDR5.txt"
 potRegFile = "/data/miraldiNB/wayman/projects/Tfh10/outs/202404/GRN_NoState/inputs/pot_regs/TF_Tfh10_SigPct5Log2FC0p58FDR5_final.txt"
 tfaGeneFile = ""
 
 ## Parameters 
-totSS = 220 # Build this many subsampled networks. Typically 50-100. High number may lead to more stable predictions but longer runtime
+totSS = 80 # Build this many subsampled networks. Typically 50-100. High number may lead to more stable predictions but longer runtime
 edgeSS = 0  # Subsample edges for TFA. 0 for no subsampling (typically 0)
 minTargets = 3 # Min targets a TF should have in prior (typically 3)
 # lambdaBias = 0.5 # Penalty applied to non-prior supported interactions (typically 0.5)
@@ -93,7 +67,7 @@ lambdaMax = 1 # Max lambda to consider (typically 1)
 extensionLimit = 1
 totLogLambdaSteps = 10 # will have this many steps per log10 within bStARS lambda range
 bStarsTotSS = 3 # Number of subsamples used to estimate lambda range. (typically 3-10)
-subsampleFrac = 0.10 # Number of pseudobulks (or cells) to use in each subsample. (1/e = 0.63 is typical but may depend on dataset)
+subsampleFrac = 0.63 # Number of pseudobulks (or cells) to use in each subsample. (1/e = 0.63 is typical but may depend on dataset)
 leaveOutSampleList = "" # Empty for no leaveout
 leaveOutInf = "" # Empty for no leaveout
 correlationWeight = 1 # How heavy to weight correlation (typically 1)
@@ -126,10 +100,13 @@ for (priorFile, outputDir, priorMergedTfsFile, priorFilePenalties) in zip(priorF
     
     ## 2. Given a prior of TF-gene interactions, estimate transcription factor activities (TFAs) using prior-based TFA and TF mRNA levels
     println("2. integratePrior_estTFA.jl")
-    tempTFAMat = tempDir * "/tfaMat.jld"
+    # Instead of reimporting tfaMat file, copy master file.
+    # Create a unique temporary TFA file name for current prior.
+    priorBaseName = splitext(basename(priorFile))[1]
+    tempTFAMat = joinpath(tempDir, "tfaMat_" * priorBaseName * ".jld")
     if !isfile(tempTFAMat)
-        println("Loading TFA matrix once...")
-        integratePrior_estTFA(tempGeneExprMat,priorFile,minTargets,edgeSS, tempTFAMat)
+        println("Computing TFA matrix for prior: $priorFile")
+        integratePrior_estTFA(tempGeneExprMat, priorFile, minTargets, edgeSS, tempTFAMat)
     end
 
     # Iterate over all lambda biases.
@@ -146,8 +123,7 @@ for (priorFile, outputDir, priorMergedTfsFile, priorFilePenalties) in zip(priorF
         mkpath(dirOut)
         
         # Save 'geneExprMat' and 'tfaMat' to the path curresponding to the current lambda.
-
-        # Instead of reimporting geneExprMat file, copy from temp file.
+        # Instead of reimporting geneExprMat file, copy from temp/master file.
         geneExprMat = dirOut * "/geneExprMat.jld"
         if !isfile(geneExprMat)
             cp(tempGeneExprMat, geneExprMat)
@@ -161,19 +137,9 @@ for (priorFile, outputDir, priorMergedTfsFile, priorFilePenalties) in zip(priorF
             println("Using cached TFA data at: ", tfaMat)
         end
         
-        for i in 1:2
-            if i == 1
-                instabilitiesDir =  dirOut * "/TFA"
-            else
-                instabilitiesDir = dirOut * "/TFmRNA"
-            end
-            tfaOpt = tfaOptions[i]
-            mkdir(instabilitiesDir)
-            try
-                mkdir(instabilitiesDir)
-            catch
-                # Directory likely exists; ignore error.
-            end
+        for (idx, tfaOpt) in enumerate(tfaOptions)
+            instabilitiesDir = (idx == 1) ? joinpath(dirOut, "TFA") : joinpath(dirOut, "TFmRNA")
+            mkpath(instabilitiesDir)
     
             println("3. estimateInstabilitiesTRNbStARS.jl")
             netSummary = "bias" * join(string.(Int.(100 .* lambdaBias)), "_")
