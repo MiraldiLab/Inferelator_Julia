@@ -1,12 +1,14 @@
 
 using CSV, DataFrames, StatsPlots, OrderedCollections
-sp = StatsPlot
+sp = StatsPlots
 
 function histogramConfidencesStacked(netFiles::OrderedDict{String, String}, 
-                                   dirOut::String, 
-                                   saveName::String; 
-                                   nbins::Vector{Int}=[30], 
-                                   layered::Bool=true)
+                                   dirOut::String; 
+                                #    nbins::Vector{Int}=[30],
+                                   saveName::Union{Nothing,String} = nothing,
+                                   nbins::Union{Nothing,Int}=nothing,
+                                   layered::Bool=true,
+                                   normalize = false)
     """
     histogramConfidencesStacked(netFiles::OrderedDict{String, String},
                                 dirOut::String, saveName::String;
@@ -19,8 +21,13 @@ function histogramConfidencesStacked(netFiles::OrderedDict{String, String},
     - `netFiles::OrderedDict{String, String}`: Maps network labels to file paths
     - `dirOut::String`: Directory where plot(s) will be saved
     - `saveName::String`: Base name for saved plot(s)
-    - `nbins::Vector{Int}=[30]`: Number of bins for each histogram. For layered plots, only the first value is used
+    - `nbins::Union{Nothing,Int} = nothing` (Optional): If provided, override the default behavior. This is only required for layered plot.
+                                                        If not provided, script uses the maximum of maximum confidences from all networks. This ensures that all bins have a width of 1.
+                                                        Networks whose maximum is < the max(max.confidences) are automatically adjusted to fit their maximum 
+                                                            
+    Otherwise, uses the maximum raw confidence value.
     - `layered::Bool=true`: If true, creates single layered plot; if false, creates individual plots
+    -  normalize::Bool=true: Whether or not to normalize confidence values for visualization.
     
     # Output:
     3. Either:
@@ -29,45 +36,51 @@ function histogramConfidencesStacked(netFiles::OrderedDict{String, String},
     
     # Notes
     - For individual plots, uses file basename for saving
-    - For layered plots, only the first bin value is used (prints warning if multiple provided)
+    - For layered plots, script uses the maximum of maximum confidences from all networks. 
     """
     # Check if dirOut is either nothing or an empty string
-    dirOut = if dirOut === nothing || isempty(dirOut)
-        pwd()
-    else
-        mkpath(dirOut)
-    end
+    dirOut = (dirOut === nothing || isempty(dirOut)) ? pwd() : mkpath(dirOut)   
   
-    # Warning message for layered plot with multiple bin values
-    if layered && length(nbins) > 1
-        @warn """Multiple bin values provided: $(nbins)
-        For layered plots, a single bin value ensures proper visual comparison.
-        Using first value ($(nbins[1])) for all layers."""
-    end
+    # # Warning message for layered plot with multiple bin values
+    # if layered && length(nbins) > 1
+    #     @warn """Multiple bin values provided: $(nbins)
+    #     For layered plots, a single bin value ensures proper visual comparison.
+    #     Using first value ($(nbins[1])) for all layers."""
+    # end
 
-    # If not layered, ensure the length of nbins matches the number of datasets
-    if !layered && length(nbins) < length(netFiles)
-            @warn """The number of bin values ($(length(nbins))) does not match the number of datasets ($(length(netFiles)))."""
-    end
+    # # If not layered, ensure the length of nbins matches the number of datasets
+    # if !layered && length(nbins) < length(netFiles)
+    #         @warn """The number of bin values ($(length(nbins))) does not match the number of datasets ($(length(netFiles)))."""
+    # end
     
     if !layered
         # Individual plots mode
         for (idx, (netName, file)) in enumerate(netFiles)
+            p = nothing
             if isfile(file)
                 # Read and process data
                 df = CSV.read(file, DataFrame; delim='\t')
-                conf = floor.(df[:, :Stability])
-                println("Maximum for $netName: ", maximum(conf))
-                conf = conf/maximum(conf)
+
+                # Floor the Stability values and normalize
+                conf = df[:, :Stability]
+                floored = floor.(conf)
+                maxVal = maximum(floored)
+                minVal = minimum(floored)
+                normVal = normalize ? (maxVal == 0 ? floored : (floored ./ maxVal)) : floored
+                nbinsUse = minVal == 0 ? (maxVal + 1) : maxVal 
+                nbinsUse = Int(nbinsUse)
+    
+                # Create a DataFrame for plotting
+                confDF = DataFrame(confidence = normVal)
+    
+                # Create histogram using the specified number of bins for this directory 
+                p = @df confDF sp.histogram(:confidence,
+                    bins = nbinsUse, fillcolor = :blue, linecolor = :black,
+                    alpha = 0.9, xlabel = "Confidence",ylabel = "Number of TF-Gene edges",
+                    title = basename(subfolder),legend = false,
+                    framestyle = :box,  yformatter = :plain)
                 
-                # Create individual histogram
-                p = @df DataFrame(confidence=conf) sp.histogram(
-                    :confidence,  bins = nbins[idx], fill = false, 
-                    lw = 2, xlabel = "Confidence", ylabel = "Frequency",
-                    title = netName, legend = false, framestyle = :box,  yformatter = :plain
-                )
-                
-                outPath = joinpath(dirOut, netName * "_Confidences.pdf")
+                outPath = joinpath(dirOut, netName * "_hist_confidence_" * string(nbinsUse) * ".pdf")
                 # Save layered plot
                 sp.savefig(p, outPath)
                 println("Saved plot for $netName to $outPath")
@@ -79,33 +92,52 @@ function histogramConfidencesStacked(netFiles::OrderedDict{String, String},
     else
         # Layered plot mode
         allData = DataFrame(confidence = Float64[], network = String[])
-        
+        globalMaxRaw = 0.0
+
         # Collect data from all files
         for (netName, file) in netFiles
             if isfile(file)
                 df = CSV.read(file, DataFrame; delim='\t')
-                conf = floor.(df[:, :Stability])
-                println("Maximum for $netName: ", maximum(conf))
-                conf = conf/maximum(conf)
-                append!(allData, DataFrame(confidence = conf, 
+
+                conf = df[:, :Stability]
+                floored = floor.(conf)
+                maxVal = maximum(floored)
+                #Update globl maximum (before normalization)
+                globalMaxRaw = max(globalMaxRaw, maxVal)
+
+                #Normalize network's confidence values if desired
+                normVal = normalize ? (maxVal == 0 ? floored : floored ./ maxVal) : floored
+                # Append to our aggregated DataFrame
+                append!(allData, DataFrame(confidence = normVal, 
                                         network = fill(netName, length(conf))))
             else
                 println("File not found: $file")
             end
         end
-        
+
         # Check if we have any data
         if nrow(allData) == 0
             println("No data found in any of the specified files.")
             return
         end
         
+        # Determine the number of bins:
+        # Use the provided nbins value, if any; otherwise, use the maximum raw confidence
+        nbinsUse = isnothing(nbins) ? Int(globalMaxRaw) : nbins
+        println("Using $nbinsUse bins (based on maximum raw confidence value: $globalMaxRaw).")
+        
         # Create layered histogram
+        # p = @df allData sp.groupedhist(:confidence, 
+        #             group = :network, alpha = 0.9,
+        #             bins = nbinsUse, fill = false, 
+        #             xlabel = "Confidence", ylabel = "Number of TF-Gene edges",
+        #             legend = true, framestyle = :box, yformatter = :plain)
+
         p = @df allData sp.histogram(:confidence, 
-                    group = :network, 
-                    bins = nbins[1], fill = false, 
-                    lw = 2, xlabel = "Confidence", ylabel = "Frequency",
-                    legend = true, framestyle = :box, yformatter = :plain)
+            group = :network, alpha = 0.9,
+            bins = nbinsUse, fill = false, 
+            xlabel = "Confidence", ylabel = "Number of TF-Gene edges",
+            legend = true, framestyle = :box, yformatter = :plain)
         
         if saveName != "" && saveName !== nothing
             outPath = joinpath(dirOut, saveName * "_Confidences.pdf")
@@ -119,27 +151,20 @@ function histogramConfidencesStacked(netFiles::OrderedDict{String, String},
 end
 
 
-function histogramConfidencesDir(currNetDirs::Vector{String}, breaks::Vector{Int})
+function histogramConfidencesDir(currNetDirs::Vector{String}; normalize = false)
 
     """
-    histogramConfidencesDir(currNetDirs::Vector{String}, breaks::Vector{Int})
+    histogramConfidencesDir(currNetDirs::Vector{String})
 
     Generates individual histograms for each target subfolder within the specified network directories.
 
     # Arguments
     - `currNetDirs::Vector{String}`: A vector of directory paths, each representing a network directory.
-    - `breaks::Vector{Int}`: A vector specifying the number of bins for the histogram in each corresponding network directory.
 
     # Notes
     - If the specified file is missing or the `Stability` column is absent, the function prints a message and continues.
-    - The number of bins for the histogram is taken from the corresponding element in `breaks`.
+    - The number of bins for the histogram is dynamically computed as the maximum confidence in the network`.
     """
-
-    # Ensure the vector lengths match
-    if length(currNetDirs) != length(breaks)
-    error("Length of breaks must match length of currNetDirs.")
-    end
-    
 
     for (ix, currNetDir) in enumerate(currNetDirs)
         # Get a list of subdirectories (non-recursive)
@@ -148,12 +173,19 @@ function histogramConfidencesDir(currNetDirs::Vector{String}, breaks::Vector{Int
         targetFolders = filter(subfolder -> basename(subfolder) in ["TFA", "TFmRNA"], subfolders)
     
         for subfolder in targetFolders
-            filePaths = joinpath(subfolder, "edges_subset.txt")
+            filePaths = joinpath(subfolder, "edges.txt")
             if isfile(filePaths)
+                df = nothing
                 try
                     df = CSV.read(filePaths, DataFrame; delim='\t')
                 catch e
                     println("Error reading $filePaths: $e")
+                    continue
+                end
+
+                # Make sure df was successfully read before proceeding
+                if df === nothing || !hasproperty(df, :Stability)
+                    println("No data or 'Stability' column missing in $filePaths")
                     continue
                 end
     
@@ -161,24 +193,27 @@ function histogramConfidencesDir(currNetDirs::Vector{String}, breaks::Vector{Int
                 conf = df[:, :Stability]
                 floored = floor.(conf)
                 maxVal = maximum(floored)
-                normVal = maxVal == 0 ? floored : floored ./maxVal
+                minVal = minimum(floored)
+                normVal = normalize ? (maxVal == 0 ? floored : (floored ./ maxVal)) : floored
+                nbinsUse = minVal == 0 ? (maxVal + 1) : maxVal 
+                nbinsUse = Int(nbinsUse)
     
                 # Create a DataFrame for plotting
-                conf = DataFrame(confidence = normVal)
+                confDF = DataFrame(confidence = normVal)
     
-                # Create histogram using the specified number of bins for this directory (breaks[ix])
-                p = @df conf sp.histogram(:confidence,
-                    bins = breaks[ix], fillcolor = :blue, linecolor = :black,
-                    alpha = 0.9, xlabel = "Confidence",ylabel = "Frequency",
+                # Create histogram using the specified number of bins for this directory 
+                p = @df confDF sp.histogram(:confidence,
+                    bins = nbinsUse, fillcolor = :blue, linecolor = :black,
+                    alpha = 0.9, xlabel = "Confidence",ylabel = "Number of TF-Gene edges",
                     title = basename(subfolder),legend = false,
                     framestyle = :box,  yformatter = :plain)
     
-                # Optionally adjust fonts (StatsPlots/Plots.jl offers attributes like titlefont and guidefont)
+                # adjust fonts (StatsPlots/Plots.jl offers attributes like titlefont and guidefont)
                 # p = plot!(p, titlefont=font(20, "black"), guidefont=font(16, "black"),
                 #           tickfont=font(14, "black"))
     
                 # Save the plot in the subfolder itself; the file name embeds the number of bins
-                save_file = joinpath(subfolder, "confidence_distribution_" * string(breaks[ix]) * ".pdf")
+                save_file = joinpath(subfolder, "confidence_distribution_" * string(nbinsUse) * ".pdf")
                 sp.savefig(p, save_file)
                 println("Saved histogram to ", save_file)
             else
@@ -194,19 +229,24 @@ end
 
 
 # Usage
+#A .
+netFiles = OrderedDict(
+            "220SS at 10PCT" => "/data/",
+            "80SS at 40PCT" => "/data/miraldiNB/"
+            )
 
-# dirOut = "./output"  
-# saveName = "my_histogram"
-
-# netFiles =  OrderedDict(
-#               "1K" => "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/SC/1KCells/lambda0p5_220totSS_20tfsPerGene_subsamplePCT27/TFA/edges_subset.txt",
-#               "10K" => "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/SC/10KCells/lambda0p5_220totSS_20tfsPerGene_subsamplePCT27/TFA/edges_subset.txt",
-#               "30K" => "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/SC/30KCells/lambda0p5_220totSS_20tfsPerGene_subsamplePCT13/TFA/edges_subset.txt",
-#                "77K" => "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/SC/lambda0p5_220totSS_20tfsPerGene_subsamplePCT10/TFA/edges_subset.txt"
-#                 )
+dirOut =  "/data/dirOut"
+saveName = "saveName"
+histogramConfidencesStacked(netFiles, dirOut; saveName,layered = true)
 
 
-#                 # For layered plot (default) - will show warning because multiple bins provided
-# histogramConfidencesStacked(netFiles, dirOut, "stacked_plot", nbins=[220, 20, 20, 20], layered = false)
 
-# p = histogramConfidencesStacked(netFiles, dirOut, saveName, nbins = 220)
+# B.
+currNetDirs = [
+    ## ---Pseudobulk Inferelator
+    "/data/",
+    "/data/",
+    "/data/"
+    ]
+
+histogramConfidencesDir(currNetDirs)

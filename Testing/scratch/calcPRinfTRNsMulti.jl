@@ -17,37 +17,34 @@ outNetFiles = [
             #ATAC 
             # "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/Bulk/lambda0p25_80totSS_20tfsPerGene_subsamplePCT63/TFA/edges_subset.txt", # ++TFA (ATAC)
             # "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/Bulk/lambda0p25_80totSS_20tfsPerGene_subsamplePCT63/TFmRNA/edges_subset.txt", # ++mRNA (ATAC)
-            # "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/Bulk/lambda0p25_80totSS_20tfsPerGene_subsamplePCT63/Combined/combined.tsv",  
+            # "/data/miraldiNB/Michael/mCD4T_Wayman/Inferelator/ATACprior/Bulk/lambda0p25_80totSS_20tfsPerGene_subsamplePCT63/Combined/combined.tsv" 
         ]
 
 
 # Dictionary for gold standard files (gsParam)
 gsParam = Dict(
-    # "ChIP_GS" => "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/goldStandards/prior_ChIP_Thelper_Miraldi2019Th17_combine_FDR5_Rank50_sp.tsv",
-    # "KO_GS"  => "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/goldStandards/prior_TF_KO_RNA_Thelper_Miraldi2019Th17_combine_Log2FC0p5_FDR20_Rank50_sp.tsv",
-    # "ChIP_KO" => "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/goldStandards/prior_KC_Thelper_Miraldi2019Th17_Rank100_sp.tsv"
+    "ChIP_GS" => "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/goldStandards/prior_ChIP_Thelper_Miraldi2019Th17_combine_FDR5_Rank50_sp.tsv",
+    "KO_GS"  => "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/goldStandards/prior_TF_KO_RNA_Thelper_Miraldi2019Th17_combine_Log2FC0p5_FDR20_Rank50_sp.tsv",
+    "ChIP_KO" => "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/goldStandards/prior_KC_Thelper_Miraldi2019Th17_Rank100_sp.tsv"
 )
 
 # Target gene file
-prTargGeneFile = "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/targRegLists/targetGenes_names.txt";
+prTargGeneFile = "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/targRegLists/targetGenes_names.txt"
 
 # Column in GRN file corresponding to interaction ranks/confidences
 rankColTrn = 3
 
 # gsRegsFile placeholder (can be empty string if not used)
-gsRegsFile = "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/targRegLists/potRegs_names.txt";
+gsRegsFile = "/data/miraldiNB/Michael/Scripts/Inferelator_JL/Tfh10_Example/inputs/targRegLists/potRegs_names.txt"
 
 breakTies = true # 
 plotUpperLimRecall = 0.1  # Detrmines where to truncate the PR curve
 
 # Loop through each outNetFileSparse
 for (ix, outNetFileSparse) in enumerate(outNetFiles)
-    # filepath = splitext(splitdir(outNetFileSparse)[end])[1]
 
     println("Calculating Performance Metric For: ", outNetFileSparse)
     filepath = dirname(outNetFileSparse)
-
-    # netBaseName = netBaseNames[ix]
 
     # Calculate precision-recall for each gold standard (from gsParam)
     for (currGSName, currGSFile) in gsParam
