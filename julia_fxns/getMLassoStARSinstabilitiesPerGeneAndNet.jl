@@ -1,4 +1,5 @@
 using Statistics
+using ProgressBars
 
 function getMLassoStARSinstabilitiesPerGeneAndNet(predictorMat,
     responseMat,priorWeightsMat,lambdaRange,subsampleSize, totSS)
@@ -83,7 +84,7 @@ end
 totEdges = zeros(totResponses)   # denominator for network Instabilities
 tick()
 ## build each response model individually
-Threads.@threads for res = 1:totResponses 
+Threads.@threads for res in ProgressBar(1:totResponses) 
     # get (finite) predictor indices for each response // filter
     currWeights = priorWeightsMat[res,:]
     # limit to predictors with finite lambda penalty (e.g., to exclude TF mRNA self-interaction loops)
