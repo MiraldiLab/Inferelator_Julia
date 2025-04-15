@@ -11,7 +11,7 @@ DataFrames
 CategoricalArrays
 SparseArrays
 PyPlot
-namedArrays
+NamedArrays
 OrderedCollections
 Dates
 Colors
