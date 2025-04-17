@@ -54,7 +54,10 @@ function makeTransform(yScale::String)
 
     Returns a tuple of (forward, inverse) functions. Defaults to identity functions if scale type not recognized.
     """
-    if yScale == "sqrt"
+    if yScale == "linear"
+        forwardFunc = x -> x
+        inverseFunc = x -> x
+    elseif yScale == "sqrt"
         forwardFunc = x -> sqrt.(x)
         inverseFunc = x -> x .^ 2
     elseif yScale == "cubert"
@@ -62,6 +65,7 @@ function makeTransform(yScale::String)
         inverseFunc = x -> x .^ 3
     else
         # For "linear" or any unknown yScale, return identity functions
+        @warn "Unknown scale type: $scaleType. Using linear scale."
         forwardFunc = x -> x
         inverseFunc = x -> x
     end
@@ -69,36 +73,72 @@ function makeTransform(yScale::String)
 end
 
 
-# Helper function: Plot a file’s data on one or more axes.
-function plotFileData!(axes, legendLabel::String, currFilePR::String, color; lineType=nothing)
+# Helper function: Plot data on one or more axes.
+function plotFileData!(axes, legendLabel::String, dataSource, color; lineType=nothing)
     """
-    Plots precision-recall curves on specified axes from data file.
+    Plots precision-recall curves on specified axes from data file or direct data.
 
     # Arguments
     - `axes`: Array of plot axes to draw on
     - `legendLabel::String`: Label for plot legend
-    - `currFilePR::String`: Path to data file containing PR curves
+    - `dataSource`: Either a file path (String) or a Dict containing PR data
     - `color`: Color for plotting
     - `lineType=nothing`: Optional line style specification
 
     # Returns
-    Loaded file data or nothing if file loading fails.
-
-    # Notes
-    - Function modifies axes in-place (hence the ! in name)
-    - Expects file to contain 'results' with :precisions and :recalls
+    Loaded/processed data or nothing if processing fails.
     """
+    
+    # Initialize variables to hold the data
+    precisions = nothing
+    recalls = nothing
+    randPR = nothing
     fileData = nothing
-    try
-        fileData = load(currFilePR)
-    catch e
-        println("Error loading file: $currFilePR - $e")
+    
+    # Process the data source based on its type
+    if isa(dataSource, String)
+        # It's a file path - try to load it
+        try
+            fileData = load(dataSource)
+            # Extract data from the loaded file
+            precisions = fileData["results"][:precisions]
+            recalls = fileData["results"][:recalls]
+            randPR = get(fileData["results"], :randPR, nothing)
+        catch e
+            println("Error loading file: $dataSource - $e")
+            return nothing
+        end
+    elseif isa(dataSource, Dict) || isa(dataSource, OrderedDict)
+        # It's already a data dictionary
+        fileData = dataSource
+        
+        # Check if it's a results dictionary or a direct data dictionary
+        if haskey(dataSource, :precisions) && haskey(dataSource, :recalls)
+            # Direct data format
+            precisions = dataSource[:precisions]
+            recalls = dataSource[:recalls]
+            randPR = get(dataSource, :randPR, nothing)
+        elseif haskey(dataSource, "results")
+            # Nested results format (like from a loaded JLD file)
+            precisions = dataSource["results"][:precisions]
+            recalls = dataSource["results"][:recalls]
+            randPR = get(dataSource["results"], :randPR, nothing)
+        else
+            println("Error: Data dictionary does not contain required precision/recall data")
+            return nothing
+        end
+    else
+        println("Error: Unsupported data source type: $(typeof(dataSource))")
         return nothing
     end
-
-    precisions = fileData["results"][:precisions]
-    recalls = fileData["results"][:recalls]
-    # Loop over the axes in which the data should be plotted.
+    
+    # Ensure we have valid data before plotting
+    if isnothing(precisions) || isnothing(recalls)
+        println("Error: Could not extract precision/recall data from source")
+        return nothing
+    end
+    
+    # Plot the data on each provided axis
     for ax in axes
         if isnothing(lineType) || lineType == ""
             # Use default linestyle
@@ -108,7 +148,13 @@ function plotFileData!(axes, legendLabel::String, currFilePR::String, color; lin
             ax.plot(recalls, precisions, label=legendLabel, color=color, linewidth=1.2, linestyle=lineType)
         end
     end
-    return fileData
+    
+    return Dict(
+        # "data" => fileData,
+        "precisions" => precisions,
+        "recalls" => recalls,
+        "randPR" => randPR
+    )
 end
 
 
@@ -129,7 +175,7 @@ function combineLegends(fig)
     return allHandles, allLabels
 end
 
-function plotPRCurves(listFilePR::OrderedDict{String,String}, dirOut::String, saveName::String;
+function plotPRCurves(listFilePR, dirOut::String, saveName::String;
                     xzoomPR = 0.1, yzoomPR = [], xStepSize = 0.05, yStepSize = 0.2,
                     yScale::String="linear", isInside::Bool=true,
                     lineColors=[], # empty vector means "use default"
@@ -140,7 +186,9 @@ function plotPRCurves(listFilePR::OrderedDict{String,String}, dirOut::String, sa
     Create precision-recall curves from the provided data files.
     
     # Arguments
-    - `listFilePR::OrderedDict{String,String}`: Dictionary mapping legend labels to file paths
+    - `listFilePR`: Dictionary mapping legend labels to either:
+                   - File paths (String)
+                   - Data dictionaries with :precisions and :recalls keys
     - `dirOut::String`: Output directory for saved plots
     - `saveName::String`: Base name for the output file
     
@@ -155,7 +203,7 @@ function plotPRCurves(listFilePR::OrderedDict{String,String}, dirOut::String, sa
     - `lineTypes::Vector{String}=String[]`: Custom line types
     
     # Returns
-    Nothing, but saves the plot to a file
+    Path to the saved plot file
     """
 
     # Style parameters
@@ -168,7 +216,7 @@ function plotPRCurves(listFilePR::OrderedDict{String,String}, dirOut::String, sa
         lineColors = padColors(listFilePR)
     end
 
-    fileDataLast = nothing   # will store last loaded file data (for randPR)
+    lastPlotData = nothing   # will store last loaded file data (for randPR)
 
     # Check if dirOut is either nothing or an empty string
     dirOut = if dirOut === nothing || isempty(dirOut)
@@ -215,18 +263,14 @@ function plotPRCurves(listFilePR::OrderedDict{String,String}, dirOut::String, sa
 
             # If lineType is provided and nonempty, then pick its element if available.
             currentLineType = (length(lineTypes) ≥ idx && lineTypes[idx] != "") ? lineTypes[idx] : nothing
-            fileDataLast = plotFileData!([ax], legendLabel, currFilePR, lineColors[idx]; 
+            lastPlotData = plotFileData!([ax], legendLabel, currFilePR, lineColors[idx]; 
                                  lineType=currentLineType)
         end
 
         # Plot random PR line from the last file if available
-        if fileDataLast !== nothing
-            try
-                randPR = fileDataLast["results"][:randPR]
-                ax.axhline(randPR, linestyle="-.", linewidth=2, color=[0.6, 0.6, 0.6], label="Random")
-            catch e
-                println("Error extracting random precision: $e")
-            end
+        if lastPlotData !== nothing && lastPlotData["randPR"] !== nothing
+            randPR = lastPlotData["randPR"]
+            ax.axhline(randPR, linestyle="-.", linewidth=2, color=[0.6, 0.6, 0.6], label="Random")
         end
 
         # Set labels and legend
@@ -295,20 +339,16 @@ function plotPRCurves(listFilePR::OrderedDict{String,String}, dirOut::String, sa
 
             # If lineType is provided and nonempty, then pick its element if available.
             currentLineType = (length(lineTypes) ≥ idx && lineTypes[idx] != "") ? lineTypes[idx] : nothing
-            fileDataLast = plotFileData!([ax1, ax2], legendLabel, currFilePR, lineColors[idx]; 
+            lastPlotData = plotFileData!([ax1, ax2], legendLabel, currFilePR, lineColors[idx]; 
                                  lineType=currentLineType)
         end
 
         # Extract randPR from the last file
         # Plot the random PR line on both axes if available.
-        if fileDataLast !== nothing
-            try
-                randPR = fileDataLast["results"][:randPR]
-                for ax in (ax1, ax2)
-                    ax.axhline(randPR, linestyle="-.", linewidth=2, color=[0.6, 0.6, 0.6], label="Random")
-                end
-            catch e
-                println("Error extracting random precision: $e")
+        if lastPlotData !== nothing && lastPlotData["randPR"] !== nothing
+            randPR = lastPlotData["randPR"]
+            for ax in (ax1, ax2)
+                ax.axhline(randPR, linestyle="-.", linewidth=2, color=[0.6, 0.6, 0.6], label="Random")
             end
         end
 
@@ -359,6 +399,46 @@ function plotPRCurves(listFilePR::OrderedDict{String,String}, dirOut::String, sa
     PyPlot.savefig(savePath, dpi=600)
     PyPlot.close("all")
 end
+
+
+
+## USAGE 
+# Example 1: Using file paths (JLD files)
+# listFilePR_files = OrderedDict(
+#     "Network1" => "/path/to/network1_metrics.jld",
+#     "Network2" => "/path/to/network2_metrics.jld"
+# )
+
+# # Example 2: Using direct PR data
+# listFilePR_data = OrderedDict(
+#     "Network1" => Dict(
+#         :precisions => [0.9, 0.85, 0.8], 
+#         :recalls => [0.1, 0.2, 0.3],
+#         :randPR => 0.1
+#     ),
+#     "Network2" => Dict(
+#         :precisions => [0.88, 0.83, 0.78], 
+#         :recalls => [0.1, 0.2, 0.3],
+#         :randPR => 0.1
+#     )
+# )
+
+# # Example 3: Mixed - some JLD files, some direct data
+# listFilePR_mixed = OrderedDict(
+#     "Network1" => "/path/to/network1_metrics.jld",
+#     "Network2" => Dict(
+#         :precisions => [0.88, 0.83, 0.78], 
+#         :recalls => [0.1, 0.2, 0.3],
+#         :randPR => 0.1
+#     )
+# )
+
+# # Call the function with your preferred data source
+# plotPRCurves(listFilePR_files, "/path/to/output", "PR_From_Files";
+#              xzoomPR = 0.15,
+#              yzoomPR = [0.4, 0.9],
+#              lineColors = ["#377eb8", "#ff7f00"],
+#              lineTypes = ["-", "--"])
 
 
 
