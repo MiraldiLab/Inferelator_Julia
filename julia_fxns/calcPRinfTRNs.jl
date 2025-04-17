@@ -272,7 +272,14 @@ function calcPRinfTRNs(gsFile::String, infTrnFile::String;
     savefig(joinpath(saveDir, baseName * "_ROC.png"), dpi = 600)
     close()
 
-    @save (joinpath(saveDir, baseName * "_PerformaceMetric.jld")) results
+    # @save (joinpath(saveDir, baseName * "_PerformaceMetric.jld")) results
+
+    # Define a standard filename for saving the performance metrics
+    savedFile = joinpath(saveDir, baseName * "_PerformaceMetric.jld")
+    @save savedFile results
+
+    # Add the saved file path to the results, so the caller immediately knows it
+    results[:savedFile] = savedFile
 
     return results
 
