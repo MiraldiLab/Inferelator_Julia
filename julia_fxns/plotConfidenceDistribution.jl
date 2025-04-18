@@ -1,6 +1,8 @@
 
+ENV["GKSwstype"] = "100"  # Tell GR to run in headless mode
 using CSV, DataFrames, StatsPlots, OrderedCollections
 sp = StatsPlots
+gr() 
 
 function histogramConfidencesStacked(netFiles::OrderedDict{String, String}, 
                                    dirOut::String; 
@@ -133,11 +135,13 @@ function histogramConfidencesStacked(netFiles::OrderedDict{String, String},
         #             xlabel = "Confidence", ylabel = "Number of TF-Gene edges",
         #             legend = true, framestyle = :box, yformatter = :plain)
 
-        p = @df allData sp.histogram(:confidence, 
-            group = :network, alpha = 0.9,
-            bins = nbinsUse, fill = false, 
-            xlabel = "Confidence", ylabel = "Number of TF-Gene edges",
-            legend = true, framestyle = :box, yformatter = :plain)
+        # p = @df allData sp.histogram(:confidence, 
+        #     group = :network, alpha = 0.9,
+        #     bins = nbinsUse, fill = false, 
+        #     xlabel = "Confidence", ylabel = "Number of TF-Gene edges",
+        #     legend = true, framestyle = :box, yformatter = :plain)
+
+        hist(allData, bins = nbinsUse)
         
         if saveName != "" && saveName !== nothing
             outPath = joinpath(dirOut, saveName * "_Confidences.pdf")
@@ -149,6 +153,11 @@ function histogramConfidencesStacked(netFiles::OrderedDict{String, String},
         println("Saved layered plot to $outPath")
     end
 end
+
+
+
+
+
 
 
 function histogramConfidencesDir(currNetDirs::Vector{String}; normalize = false)
@@ -202,12 +211,24 @@ function histogramConfidencesDir(currNetDirs::Vector{String}; normalize = false)
                 confDF = DataFrame(confidence = normVal)
     
                 # Create histogram using the specified number of bins for this directory 
-                p = @df confDF sp.histogram(:confidence,
-                    bins = nbinsUse, fillcolor = :blue, linecolor = :black,
+                # p = @df confDF sp.histogram(:confidence,
+                #     bins = nbinsUse, 
+                #     fillcolor = :blue, linecolor = :black,
+                #     alpha = 0.9, xlabel = "Confidence",ylabel = "Number of TF-Gene edges",
+                #     title = basename(subfolder), 
+                #     legend = false,
+                #     framestyle = :box,  
+                #     yformatter = :plain
+                #     )
+                p = sp.plot(normVal, seriestype = :barhist, bins = nbinsUse, 
+                    fillcolor = :blue, linecolor = :black,
                     alpha = 0.9, xlabel = "Confidence",ylabel = "Number of TF-Gene edges",
-                    title = basename(subfolder),legend = false,
-                    framestyle = :box,  yformatter = :plain)
-    
+                    title = basename(subfolder), 
+                    legend = false,
+                    framestyle = :box,  
+                    yformatter = :plain)
+                
+
                 # adjust fonts (StatsPlots/Plots.jl offers attributes like titlefont and guidefont)
                 # p = plot!(p, titlefont=font(20, "black"), guidefont=font(16, "black"),
                 #           tickfont=font(14, "black"))
@@ -223,30 +244,3 @@ function histogramConfidencesDir(currNetDirs::Vector{String}; normalize = false)
     end
 end
     
-    
-
-
-
-
-# Usage
-#A .
-netFiles = OrderedDict(
-            "220SS at 10PCT" => "/data/",
-            "80SS at 40PCT" => "/data/miraldiNB/"
-            )
-
-dirOut =  "/data/dirOut"
-saveName = "saveName"
-histogramConfidencesStacked(netFiles, dirOut; saveName,layered = true)
-
-
-
-# B.
-currNetDirs = [
-    ## ---Pseudobulk Inferelator
-    "/data/",
-    "/data/",
-    "/data/"
-    ]
-
-histogramConfidencesDir(currNetDirs)
