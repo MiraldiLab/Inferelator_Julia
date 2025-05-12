@@ -138,7 +138,8 @@ for (priorFile, outputDir, priorMergedTfsFile, priorFilePenalties) in zip(priorF
         end
         
         for (idx, tfaOpt) in enumerate(tfaOptions)
-            instabilitiesDir = (idx == 1) ? joinpath(dirOut, "TFA") : joinpath(dirOut, "TFmRNA")
+            # instabilitiesDir = (idx == 1) ? joinpath(dirOut, "TFA") : joinpath(dirOut, "TFmRNA")
+            instabilitiesDir = tfaOpt == "" ? joinpath(dirOut, "TFA") : joinpath(dirOut, "TFmRNA")
             mkpath(instabilitiesDir)
     
             println("3. estimateInstabilitiesTRNbStARS.jl")
