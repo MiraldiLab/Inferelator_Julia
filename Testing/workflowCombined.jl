@@ -105,7 +105,8 @@ if !isfile(tfaMat)
 end
 
 for (idx, tfaOpt) in enumerate(tfaOptions)
-    instabilitiesDir = (idx == 1) ? joinpath(dirOut, "TFA") : joinpath(dirOut, "TFmRNA")
+    # instabilitiesDir = (idx == 1) ? joinpath(dirOut, "TFA") : joinpath(dirOut, "TFmRNA")
+    instabilitiesDir = tfaOpt == "" ? joinpath(dirOut, "TFA") : joinpath(dirOut, "TFmRNA")
     mkpath(instabilitiesDir)
 
     ## 3. 
