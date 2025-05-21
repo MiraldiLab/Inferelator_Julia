@@ -176,7 +176,8 @@ function combineLegends(fig)
 end
 
 function plotPRCurves(listFilePR, dirOut::String, saveName::String;
-                    xzoomPR = 0.1, yzoomPR = [], xStepSize = 0.05, yStepSize = 0.2,
+                    xzoomPR = 0.1, yzoomPR = [], xStepSize::Union{Nothing,Real}=nothing,
+                    yStepSize::Union{Nothing,Real}=nothing,
                     yScale::String="linear", isInside::Bool=true,
                     lineColors=[], # empty vector means "use default"
                     lineTypes=[] # empty vector means "use default"
@@ -195,8 +196,8 @@ function plotPRCurves(listFilePR, dirOut::String, saveName::String;
     # Keywords
     - `xzoomPR::Float64=0.1`: X-axis zoom level
     - `yzoomPR::Vector{Float64}=[]`: Y-axis zoom level(s)
-    - `xStepSize::Float64=0.05`: X-axis tick step size
-    - `yStepSize::Float64=0.2`: Y-axis tick step size
+    - `xStepSize::Union{Nothing,Real}=nothing`: X-axis tick step size
+    - `yStepSize::Union{Nothing,Real}=nothing`: Y-axis tick step size
     - `yScale::String="linear"`: Y-axis scale type
     - `isInside::Bool=true`: Whether to place legend inside plot
     - `lineColors::Vector=[]`: Custom line colors
@@ -224,6 +225,9 @@ function plotPRCurves(listFilePR, dirOut::String, saveName::String;
     else
         mkpath(dirOut)
     end
+
+    xStepSize = xStepSize == nothing ? 0.05 : xStepSize
+    yStepSize = yStepSize == nothing ? 0.2 : yStepSize
 
     ## Making Plots
     if length(yzoomPR) == 1 || isempty(yzoomPR) 
