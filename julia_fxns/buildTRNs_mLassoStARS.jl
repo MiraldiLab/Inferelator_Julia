@@ -345,9 +345,6 @@ function buildTRNs_mLassoStARS(instabOutMat,tfaMat,priorMergedTfsFile,
                                 rankings[selectionIndices], coefVec[selectionIndices], strokeVals[selectionIndices],
                                 strokeWidth[selectionIndices], strokeDashArray[selectionIndices]
                              )
-    # networkMatrixSubset = hcat(regs[1:totQuantEdges], targs[1:totQuantEdges], signedQuantile[1:totQuantEdges], 
-    #                             rankings[1:totQuantEdges], coefVec[1:totQuantEdges], strokeVals[1:totQuantEdges], strokeWidth[1:totQuantEdges], strokeDashArray[1:totQuantEdges])
-
     colNames = "TF\tGene\tsignedQuantile\tStability\tCorrelation\tstrokeVals\tstrokeWidth\tstrokeDashArray\n"
 
     open(networkDir * "/targs.txt","w") do io 
