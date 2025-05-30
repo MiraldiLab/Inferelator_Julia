@@ -10,6 +10,7 @@ include("../julia_fxns/groupSelection.jl")
 function buildTRNs_mLassoStARS(instabOutMat,tfaMat,priorMergedTfsFile,
     meanEdgesPerGene, useMeanEdgesPerGeneMode, targInstability,instabSource,subsampHistPdf,trnOutMat,correlationWeight,
     outNetFileSparse, outMat, networkDir)
+
     """
     buildTRNs_mLassoStARS(instabOutMat,tfaMat,meanEdgesPerGene,...
        targInstability,instabSource,plotSubSampHist,trnOutMat,...
@@ -62,10 +63,10 @@ function buildTRNs_mLassoStARS(instabOutMat,tfaMat,priorMergedTfsFile,
       including metadata to modulate edge color and other features in
       visualization tool jp_gene_viz
       (https://github.com/simonsfoundation/jp_gene_viz), NOTE: empty string
-      '' signals not to create this output
+      signals not to create this output
 
     # Returns:
-    # ${outDir}/Results_lassoStARS/${quantNetFolderName} outputs:
+    # {outDir}/Results_lassoStARS/{quantNetFolderName} outputs:
     trnOutMat -- contains ranked lists of network edges, stabilities,
       whether they were in the input prior, etc.
     outNetFileSparse -- (optional) 3-column network file format for visualization in 
@@ -75,8 +76,8 @@ function buildTRNs_mLassoStARS(instabOutMat,tfaMat,priorMergedTfsFile,
            1.  Edge thickness (in output sparse network) is proportional to 
                  edge stability: 2*(.5-instability) E [0,1] 
            2.  Edges signs are calculated based on partial correlation
-
     """
+    
     ssMatrix = load(instabOutMat, "ssMatrix")
     netInstabilities = load(instabOutMat, "netInstabilities")
     predictorMat = load(instabOutMat, "predictorMat")
@@ -341,10 +342,12 @@ function buildTRNs_mLassoStARS(instabOutMat,tfaMat,priorMergedTfsFile,
         totQuantEdges = length(unique(targs)) * meanEdgesPerGene
         selectionIndices = 1:totQuantEdges
     end
+    
     networkMatrixSubset = hcat(regs[selectionIndices], targs[selectionIndices], signedQuantile[selectionIndices],
                                 rankings[selectionIndices], coefVec[selectionIndices], strokeVals[selectionIndices],
                                 strokeWidth[selectionIndices], strokeDashArray[selectionIndices]
                              )
+
     colNames = "TF\tGene\tsignedQuantile\tStability\tCorrelation\tstrokeVals\tstrokeWidth\tstrokeDashArray\n"
 
     open(networkDir * "/targs.txt","w") do io 
