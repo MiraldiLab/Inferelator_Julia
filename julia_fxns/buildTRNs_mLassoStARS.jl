@@ -127,7 +127,8 @@ function buildTRNs_mLassoStARS(instabOutMat,tfaMat,priorMergedTfsFile,
     totInts = totNetGenes * totNetTfs 
     targs0 = repeat(targGenes, totNetTfs, 1)
     regs1 = repeat(permutedims(allPredictors), totNetGenes,1)
-    regs0 = reshape(regs1,totInts,1)
+    # regs0 = reshape(regs1,totInts,1)
+    regs0 = vec(regs1)
     ## only keep nonzero & finite edge subsample counts
     rankTmp = ssOfInt[:]
     keepInds = findall(x -> x != 0 && x != Inf, rankTmp) # keep nonzero, remove infinite values (e.g., corresponding to TF-TF edges when TF mRNA used for TFA)
@@ -138,9 +139,9 @@ function buildTRNs_mLassoStARS(instabOutMat,tfaMat,priorMergedTfsFile,
     targs = targs0[keepInds[inds]]
     totInfInts = length(rankings)
 
-    # Compute quantiles 
-    F = ecdf(rankings)  # uses the StatsBase package
-    quantiles = F.(rankings)
+    # # Compute quantiles 
+    # F = ecdf(rankings)  # uses the StatsBase package
+    # quantiles = F.(rankings)
 
     ## Determine selection indices
     println("Calculating quantiles, assuming mean of ", string(meanEdgesPerGene), " TFs/gene.")
@@ -154,6 +155,10 @@ function buildTRNs_mLassoStARS(instabOutMat,tfaMat,priorMergedTfsFile,
         selectionIndices = firstNByGroup(targs, meanEdgesPerGene)
     end
 
+    # Compute quantiles 
+    F = ecdf(rankings[selectionIndices])  # uses the StatsBase package
+    quantiles = F.(rankings[selectionIndices])
+
     ## take what's in the meanEdgesPerGene network and get partial correlations
     allCoefs = zeros(totNetGenes,totNetTfs)
     allQuants = zeros(totNetGenes,totNetTfs)
@@ -166,18 +171,27 @@ function buildTRNs_mLassoStARS(instabOutMat,tfaMat,priorMergedTfsFile,
 
     println("---- Computing partial correlations")
     tick()
-    for targ = 1:totUniTargs
-        # println(targ)
+    for targ = ProgressBar(1:totUniTargs)
         currTarg = uniTargs[targ]
         targRankInds = last.(Tuple.(findall(x -> x == currTarg, keptTargs)))
         currRegs = regs[targRankInds]
+
+        # --- Deduplicate currRegs while keeping aligned targRankInds ---
+        uniCurrRegsInds = firstNByGroup(currRegs, 1)  # This reurns the index where each unique currRegs first appeared
+        uniCurrRegs = currRegs[uniCurrRegsInds]    
+        targRankInds = targRankInds[uniCurrRegsInds]  # Ensure the target corresponding to the duplicated Regulator is removed
+        # --- Get target index in full gene list
         targInd = last.(Tuple.(findall(x -> x == currTarg, targGenes)))
-        tfsPerGene[targ] = length(targRankInds)
-        tfsPerGene = Int.(tfsPerGene)
-        vals = intersect(allPredictors,currRegs)
-        inds = Tuple.(findall(in(vals), allPredictors))
-        regressIndsMat = first.(inds)
-        rankVecInds = findall(in(vals),currRegs)
+        tfsPerGene[targ] = Int.(length(targRankInds))
+        # tfsPerGene = Int.(tfsPerGene)
+
+        # --- Match predictors ---
+        matchedRegs = intersect(allPredictors,currRegs)
+        # inds = findall(in(matchedRegs), allPredictors)
+        # regressIndsMat = first.(inds)
+        regressIndsMat = findall(in(matchedRegs), allPredictors)
+        rankVecInds = findall(in(matchedRegs),uniCurrRegs)
+        # --- Prepare input matrix: target + predictors ---
         currTargVals = vec(transpose(responseMat[targInd,:]))
         currPredVals = transpose(predictorMat[regressIndsMat,:])
         combTargPreds = vcat(currTargVals', currPredVals')'
@@ -191,8 +205,8 @@ function buildTRNs_mLassoStARS(instabOutMat,tfaMat,priorMergedTfsFile,
         else
             println(currTarg, " pcorr was singular, # TFs = ", string(length(regressIndsMat)))
         end   
+
         allQuants[targInd,regressIndsMat] = quantiles[targRankInds[rankVecInds]]
-        #allStabsTest[targInd,regressIndsMat] = rankings[targRankInds[rankVecInds]] + round.(abs.(prho),digits = 2)
         allStabsTest[targInd,regressIndsMat] = allStabsTest[targInd,regressIndsMat] + (correlationWeight .* transpose(round.(abs.(prho),digits = 4)))
     end
     tock()
