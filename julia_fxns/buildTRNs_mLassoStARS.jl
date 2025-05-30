@@ -142,16 +142,23 @@ function buildTRNs_mLassoStARS(instabOutMat,tfaMat,priorMergedTfsFile,
     F = ecdf(rankings)  # uses the StatsBase package
     quantiles = F.(rankings)
 
-    ## Select the top `length(unique(targs))*meanEdgesPerGene` interactions
+    ## Determine selection indices
     println("Calculating quantiles, assuming mean of ", string(meanEdgesPerGene), " TFs/gene.")
-    totQuantEdges = length(unique(targs))*meanEdgesPerGene
-    totQuantEdges = totInfInts > totQuantEdges ? length(findall(x -> x > 0, quantiles[1:totQuantEdges]))  : length(quantiles)
+    # totQuantEdges = length(unique(targs))*meanEdgesPerGene
+    # totQuantEdges = totInfInts > totQuantEdges ? length(findall(x -> x > 0, quantiles[1:totQuantEdges]))  : totInfInts
+
+    if useMeanEdgesPerGeneMode
+      totQuantEdges = length(unique(targs)) * meanEdgesPerGene
+      selectionIndices = 1:min(totQuantEdges, totInfInts)
+    else
+        selectionIndices = firstNByGroup(targs, meanEdgesPerGene)
+    end
 
     ## take what's in the meanEdgesPerGene network and get partial correlations
     allCoefs = zeros(totNetGenes,totNetTfs)
     allQuants = zeros(totNetGenes,totNetTfs)
     allStabsTest = ssOfInt
-    keptTargs = permutedims(targs[1:totQuantEdges])
+    keptTargs = permutedims(targs[selectionIndices])
     # keptTargs = permutedims(targs)
     uniTargs = unique(keptTargs)
     totUniTargs = length(uniTargs)
@@ -304,41 +311,62 @@ function buildTRNs_mLassoStARS(instabOutMat,tfaMat,priorMergedTfsFile,
     targs = targs[keepRankings[indsMerged]]
     totInfInts = length(rankings)
 
-    totQuantEdges = length(unique(targs))*meanEdgesPerGene
+    # totQuantEdges = length(unique(targs))*meanEdgesPerGene
     # Compute quantiles
     F = ecdf(rankings)  
     quantiles = F.(rankings)
 
-    ## Color calculations for JP-Gene-Viz 
-    minRank = minimum(rankings)
-    maxRank = maximum(rankings)
-    rankRange = maxRank - minRank
+    # Compute signedQuantiles
+    signedQuantile = sign.(coefVec) .* quantiles
+
+    ## ------- Color calculations for JP-Gene-Viz 
+    # Compute strokeWidth and colors
+    minRank, maxRank = extrema(rankings)
+    rankRange = max(maxRank - minRank, eps())  # prevent division by zero
+    strokeWidth = 1 .+ (rankings .- minRank) ./ rankRange
+    # Color mapping
     medBlue = [0, 85, 255]
     medRed = [228, 26, 28]
     lightGrey = [217, 217, 217]
-    strokeWidth = zeros(length(rankings))
-    strokeVals = Vector{String}()
-    strokeDashArray = Vector{String}()
-    # signedQuantile = zeros(length(rankings))
-    signedQuantile = sign.(coefVec) .* quantiles
-    for ii in 1:length(rankings)
-        strokeWidth[ii] = 1 + (rankings[ii] - minRank) / rankRange
-        currPrho = abs(coefVec[ii])
-        color = currPrho * medRed + (1-currPrho)*lightGrey
-        colorString = "rgb(" * string(floor(Int, round(color[1]))) * "," * string(floor(Int, round(color[2]))) * "," * string(floor(Int, round(color[3]))) * ")"
-        push!(strokeVals, colorString)
-        # signedQuantile[ii] = sign(coefVec[ii]) * quantiles[ii]
-        if inPriorVec[ii] == 1
-            push!(strokeDashArray, "None")
-        else
-            push!(strokeDashArray, "2,2")
-        end
+    strokeVals = map(abs.(coefVec)) do corr
+            color = corr * medRed .+ (1 - corr) * lightGrey
+            "rgb($(floor(Int, round(color[1]))),$(floor(Int, round(color[2]))),$(floor(Int, round(color[3]))))"
+            # "rgb(" * string(floor(Int, round(color[1]))) * "," * string(floor(Int, round(color[2]))) * "," * string(floor(Int, round(color[3]))) * ")"
     end
+    # Dash Styling
+    strokeDashArray = ifelse.(inPriorVec .!= 0, "None", "2,2")
+
+
+    # minRank = minimum(rankings)
+    # maxRank = maximum(rankings)
+    # rankRange = maxRank - minRank
+    # medBlue = [0, 85, 255]
+    # medRed = [228, 26, 28]
+    # lightGrey = [217, 217, 217]
+    # strokeWidth = zeros(length(rankings))
+    # strokeVals = Vector{String}()
+    # strokeDashArray = Vector{String}()
+    # # signedQuantile = zeros(length(rankings))
+    # signedQuantile = sign.(coefVec) .* quantiles
+    # for ii in 1:length(rankings)
+    #     strokeWidth[ii] = 1 + (rankings[ii] - minRank) / rankRange
+    #     currPrho = abs(coefVec[ii])
+    #     color = currPrho * medRed + (1-currPrho)*lightGrey
+    #     colorString = "rgb(" * string(floor(Int, round(color[1]))) * "," * string(floor(Int, round(color[2]))) * "," * string(floor(Int, round(color[3]))) * ")"
+    #     push!(strokeVals, colorString)
+    #     # signedQuantile[ii] = sign(coefVec[ii]) * quantiles[ii]
+    #     if inPriorVec[ii] == 1
+    #         push!(strokeDashArray, "None")
+    #     else
+    #         push!(strokeDashArray, "2,2")
+    #     end
+    # end
 
     networkMatrix = hcat(regs, targs, signedQuantile, rankings, coefVec, strokeVals, strokeWidth, strokeDashArray)
     if useMeanEdgesPerGeneMode
         totQuantEdges = length(unique(targs)) * meanEdgesPerGene
-        selectionIndices = 1:totQuantEdges
+        # selectionIndices = 1:totQuantEdges
+        selectionIndices = 1:min(totQuantEdges, totInfInts)
     else
         selectionIndices = firstNByGroup(targs, meanEdgesPerGene)
         
