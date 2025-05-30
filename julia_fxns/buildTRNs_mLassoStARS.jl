@@ -48,8 +48,8 @@ function buildTRNs_mLassoStARS(instabOutMat,tfaMat,priorMergedTfsFile,
     meanEdgesPerGene -- used to calculate quantiles, total number of edges =
       number of gene models X meanEdgesPerGene
     useMeanEdgesPerGene::Bool -- Flag to determine how edges are selected for network visualization or analysis.
-          If `true`, selects the top `meanEdgesPerGene` edges **per target gene** using the `firstNByGroup` function.  
-          If `false`, selects a flat total number of edges equal to `length(unique(targs)) * meanEdgesPerGene`.
+          If `false`, selects the top `meanEdgesPerGene` edges **per target gene** using the `firstNByGroup` function.  
+          If `true`, selects a flat total number of edges equal to `length(unique(targs)) * meanEdgesPerGene`.
           This option controls whether edge selection is done per-group or globally.
     targInstability -- instability cutoff of interest, belongs to range 
       (0,.5]
@@ -337,10 +337,11 @@ function buildTRNs_mLassoStARS(instabOutMat,tfaMat,priorMergedTfsFile,
 
     networkMatrix = hcat(regs, targs, signedQuantile, rankings, coefVec, strokeVals, strokeWidth, strokeDashArray)
     if useMeanEdgesPerGeneMode
-        selectionIndices = firstNByGroup(targs, meanEdgesPerGene)
-    else
         totQuantEdges = length(unique(targs)) * meanEdgesPerGene
         selectionIndices = 1:totQuantEdges
+    else
+        selectionIndices = firstNByGroup(targs, meanEdgesPerGene)
+        
     end
     
     networkMatrixSubset = hcat(regs[selectionIndices], targs[selectionIndices], signedQuantile[selectionIndices],
