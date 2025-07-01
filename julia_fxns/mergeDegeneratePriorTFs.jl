@@ -51,7 +51,7 @@ end
 
 
 # Function to merge degenerate prior TFs
-function mergeDegeneratePriorTfs(networkFile::String, outFileBase::String, fileFormat::Int; connector::String = "_")
+function mergeDegeneratePriorTfs(networkFile::String; outFileBase::Union{String,Nothing}=nothing, fileFormat::Int = 2, connector::String = "_")
     tick()
     # Initialize dictionary to store TF-target interactions
     tfTargDic = Dict{String, Set{Tuple{String, String}}}()
@@ -154,6 +154,13 @@ function mergeDegeneratePriorTfs(networkFile::String, outFileBase::String, fileF
          end
          
          # Merge the thread-local results into global dictionaries.
+                  # Merge the thread-local results into global dictionaries.
+        for lo in localOverlapsArray
+            for (k,v) in lo
+                overlaps[k] = v
+            end
+        end
+
          for localx in localTFMergersArray
              for (tf, mergerSet) in localx
                  if haskey(tfMergers, tf)
@@ -202,11 +209,19 @@ function mergeDegeneratePriorTfs(networkFile::String, outFileBase::String, fileF
     printedTfs = String[]
     overlapsToPrint = Dict{String, Vector{String}}()    # key = printed TF name, value = list of overlap counts
 
-    netOutFile = joinpath(outFileBase, "_merged_sp.tsv")
-    netMatOutFile = joinpath(outFileBase, "_merged.tsv")
-    overlapsOutFile = joinpath(outFileBase,"_overlaps.txt")
-    targetTotalsFile = joinpath(outFileBase,"_targetTotals.txt")
-    mergedTfsOutFile = joinpath(outFileBase, "_mergedTfs.txt")
+    # If no outFileBase was supplied, derive it from networkFile:
+    if outFileBase === nothing
+        dir  = dirname(networkFile)                             
+        stem = splitext(basename(networkFile))[1]                # filename without extension
+        outFileBase = joinpath(dir, stem)                       
+    end
+
+    #  Now construct your five output paths by appending suffixes to outFileBase:
+    netOutFile       = outFileBase * "_merged_sp.tsv"
+    netMatOutFile    = outFileBase * "_merged.tsv"
+    overlapsOutFile  = outFileBase * "_overlaps.tsv"
+    targetTotalsFile = outFileBase * "_targetTotals.tsv"
+    mergedTfsOutFile = outFileBase * "_mergedTfs.tsv"
 
     netOut = open(netOutFile, "w")
     overlapsOut = open(overlapsOutFile, "w")
@@ -289,5 +304,3 @@ function mergeDegeneratePriorTfs(networkFile::String, outFileBase::String, fileF
     return mergedMat
     tock()
 end
-
-
