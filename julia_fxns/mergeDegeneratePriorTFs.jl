@@ -35,7 +35,7 @@ include("../julia_fxns/priorUtils.jl")
     # Returns
     A `NamedTuple` with:
     - `merged::DataFrame` — Wide-format merged matrix (targets × meta-TFs).
-    - `mergedTfs::Vector{String}` — Lines describing each meta-TF and its constituent TFs.
+    - `mergedTfs::Matrix{String}` — A two-column matrix where each row contains a meta-TF name and a comma-separated list of its constituent TFs.
 """
 
 mutable struct mergeDegeneratePriorOutput
