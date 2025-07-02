@@ -38,7 +38,14 @@ include("../julia_fxns/priorUtils.jl")
     - `mergedTfs::Vector{String}` — Lines describing each meta-TF and its constituent TFs.
 """
 
+mutable struct mergeDegeneratePriorOutput
+    mergedMat::Union{DataFrame, Nothing}
+    mergedTfs::Union{Vector{String}, Nothing}
 
+    function mergeDegeneratePriorOutput()
+        return(new(nothing, nothing))
+    end
+end
 
 function countOverlap(s1::AbstractSet, s2::AbstractSet)
     """
@@ -249,10 +256,12 @@ end
 
 # Function to merge degenerate prior TFs
 function mergeDegenerateTFs(
-                                networkFile::String; 
-                                outFileBase::Union{String,Nothing}=nothing, 
-                                fileFormat::Int = 2, 
-                                connector::String = "_")
+                            mergedPriorData::mergeDegeneratePriorOutput,
+                            networkFile::String; 
+                            outFileBase::Union{String,Nothing}=nothing, 
+                            fileFormat::Int = 2, 
+                            connector::String = "_"
+                            )
     """
     merge_degenerate_priors(
         networkFile::String;
@@ -308,7 +317,7 @@ function mergeDegenerateTFs(
     allMergedTfs = collect(keys(tfMergers))
     usedMergedTfs = Set{String}()    # keeps track of used TFs, so we don't output mergers twice
     printedTfs = String[]
-    overlapsMap = Dict{String, Vector{String}}()    # key = printed TF name, value = list of overlap counts
+    # overlapsMap = Dict{String, Vector{String}}()    # key = printed TF name, value = list of overlap counts
         
     try
         # Write header to network output file.
@@ -369,6 +378,10 @@ function mergeDegenerateTFs(
     writeTSVWithEmptyFirstHeader(mergedMat, netMatOutFile; delim ='\t')
 
     println("Output files:\n$mergedTfsIO\n$totTargOutFile\n$netOutFile\n$overlapsOutFile")
-    return mergedMat, mergedTfsList
+    # return mergedMat, mergedTfsList
+    # output = MergeDegeneratePriorOutput()
+    mergedPriorData.mergedMat =  mergedMat    
+    mergedPriorData.mergedTfs = mergedTfsList   
+    # return output
 
 end
