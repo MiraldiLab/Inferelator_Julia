@@ -36,26 +36,17 @@ include("../julia_fxns/priorUtils.jl")
     A `NamedTuple` with:
     - `merged::DataFrame` — Wide-format merged matrix (targets × meta-TFs).
     - `mergedTfs::Vector{String}` — Lines describing each meta-TF and its constituent TFs.
-
-    # Usage
-    
-    outFileBase = nothing
-    networkFile = "/data/prior.tsv"
-    fileFormat = 2
-    res = mergeDegeneratePriorOutput()
-    mergeDegenerateTFs(res, networkFile; fileFormat = 2);
-    res.mergedMat -- returns the merged prior File
-    res.mergedTFs -- returns the TFs merged
 """
 
 mutable struct mergeDegeneratePriorOutput
-    mergedMat::Union{DataFrame, Nothing}
-    mergedTfs::Union{Vector{String}, Nothing}
-
+    mergedPrior::Union{DataFrame, Nothing}
+    mergedTfs::Union{Matrix{String}, Nothing}  # 2-column matrix of strings or nothing
+    
     function mergeDegeneratePriorOutput()
-        return(new(nothing, nothing))
+        return new(nothing, nothing)
     end
 end
+
 
 function countOverlap(s1::AbstractSet, s2::AbstractSet)
     """
@@ -313,7 +304,7 @@ function mergeDegenerateTFs(
     netMatOutFile    = outFileBase * "_merged.tsv"
     overlapsOutFile  = outFileBase * "_overlaps.tsv"
     totTargOutFile = outFileBase * "_targetTotals.tsv"
-    mergedTfsOutFile = outFileBase * "_mergedTfs.tsv"
+    mergedTfsOutFile = outFileBase * "_mergedTFs.tsv"
 
     # Open all
     netIO = open(netOutFile, "w")
@@ -323,7 +314,7 @@ function mergeDegenerateTFs(
 
     # In-memory collector
     netDF         = DataFrame(Regulator=String[], Target=String[], Weight=String[])
-    mergedTfsList = String[]    # will hold lines "metaTF\tmember1, member2,…"
+    tabMergedTFs = Vector{Vector{String}}()  # will hold lines "metaTF\tmember1, member2,…"
     allMergedTfs = collect(keys(tfMergers))
     usedMergedTfs = Set{String}()    # keeps track of used TFs, so we don't output mergers twice
     printedTfs = String[]
@@ -343,7 +334,7 @@ function mergeDegenerateTFs(
                 line = tfPrint * "\t" * join(mergedTfs, ", ")
                 println(mergedTfsIO, line)
                 # 2) store in memory
-                push!(mergedTfsList, line)
+                push!(tabMergedTFs,  [tfPrint, join(mergedTfs, ", ")])
                 doPrint = true
 
             elseif !(tf in allMergedTfs)
@@ -382,16 +373,16 @@ function mergeDegenerateTFs(
     # mergedTab = CSV.read(netOutFile, DataFrame; delim='\t')
     # Convert the DataFrame to wide format
     netDF.Weight = parse.(Float64, netDF.Weight)
-    mergedMat = convertToWide(netDF; indices=(2, 1, 3))
-    mergedMat .= coalesce.(mergedMat, 0.0)
+    mergedPrior = convertToWide(netDF; indices=(2, 1, 3))
+    mergedPrior .= coalesce.(mergedPrior, 0.0)
     # write to file, while makig sure the first column is unnamed.
-    writeTSVWithEmptyFirstHeader(mergedMat, netMatOutFile; delim ='\t')
+    writeTSVWithEmptyFirstHeader(mergedPrior, netMatOutFile; delim ='\t')
 
     println("Output files:\n$mergedTfsIO\n$totTargOutFile\n$netOutFile\n$overlapsOutFile")
-    # return mergedMat, mergedTfsList
+    # return mergedPrior, mergedTfsList
     # output = MergeDegeneratePriorOutput()
-    mergedPriorData.mergedMat =  mergedMat    
-    mergedPriorData.mergedTfs = mergedTfsList   
+    mergedPriorData.mergedPrior =  mergedPrior    
+    mergedPriorData.mergedTfs = reduce(vcat, permutedims.(tabMergedTFs))   # Convert tabMergedTFs to a two columns matrix and then saves
     # return output
 
 end
