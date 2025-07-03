@@ -34,15 +34,15 @@ include("../julia_fxns/priorUtils.jl")
 
     # Returns
     A `NamedTuple` with:
-    - `merged::DataFrame` — Wide-format merged matrix (targets × meta-TFs).
+    - `merged::DataFrame` — Wide-format merged matrix (targets x meta-TFs).
     - `mergedTfs::Matrix{String}` — A two-column matrix where each row contains a meta-TF name and a comma-separated list of its constituent TFs.
 """
 
-mutable struct mergeDegeneratePriorOutput
+mutable struct  mergedTFsResult
     mergedPrior::Union{DataFrame, Nothing}
-    mergedTfs::Union{Matrix{String}, Nothing}  # 2-column matrix of strings or nothing
+    mergedTFMap::Union{Matrix{String}, Nothing}  # 2-column matrix of strings or nothing
     
-    function mergeDegeneratePriorOutput()
+    function mergedTFsResult()
         return new(nothing, nothing)
     end
 end
@@ -257,7 +257,7 @@ end
 
 # Function to merge degenerate prior TFs
 function mergeDegenerateTFs(
-                            mergedPriorData::mergeDegeneratePriorOutput,
+                            mergedTFsData::mergedTFsResult,
                             networkFile::String; 
                             outFileBase::Union{String,Nothing}=nothing, 
                             fileFormat::Int = 2, 
@@ -381,8 +381,8 @@ function mergeDegenerateTFs(
     println("Output files:\n$mergedTfsIO\n$totTargOutFile\n$netOutFile\n$overlapsOutFile")
     # return mergedPrior, mergedTfsList
     # output = MergeDegeneratePriorOutput()
-    mergedPriorData.mergedPrior =  mergedPrior    
-    mergedPriorData.mergedTfs = reduce(vcat, permutedims.(tabMergedTFs))   # Convert tabMergedTFs to a two columns matrix and then saves
+    mergedTFsData.mergedPrior =  mergedPrior    
+    mergedTFsData.mergedTFMap = reduce(vcat, permutedims.(tabMergedTFs))   # Convert tabMergedTFs to a two columns matrix and then saves
     # return output
 
 end
